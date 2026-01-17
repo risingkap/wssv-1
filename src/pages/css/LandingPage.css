@@ -465,26 +465,14 @@
 }
 
 .connect-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 60px;
-  align-items: center;
+  display: flex;
+  justify-content: center;
   margin-top: 60px;
 }
 
-.phone-icon-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.phone-3d-icon {
-  font-size: 8rem;
-  color: var(--dark-blue);
-  filter: drop-shadow(0 10px 30px rgba(30, 64, 175, 0.3));
-}
-
 .contact-form {
+  width: 100%;
+  max-width: 600px;
   background: var(--bg-white);
   padding: 40px;
   border-radius: 12px;
@@ -693,13 +681,7 @@
     grid-template-columns: 1fr;
   }
 
-  .connect-content {
-    grid-template-columns: 1fr;
-  }
 
-  .phone-icon-container {
-    order: -1;
-  }
 }
 
 @media (max-width: 768px) {

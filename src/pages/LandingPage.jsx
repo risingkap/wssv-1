@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCamera, faListUl, faShieldAlt, faUserGear,
   faCheck, faXmark, faMobileScreen, faUserDoctor, faStethoscope,
-  faPhone, faImage, faHome, faInfoCircle, faQuestionCircle
+  faImage, faHome, faInfoCircle, faQuestionCircle
 } from '@fortawesome/free-solid-svg-icons';
 
 function LandingPage() {
@@ -214,9 +214,7 @@ function LandingPage() {
         <div className="container">
           <h2 className="section-title">Connect with us</h2>
           <div className="connect-content">
-            <div className="phone-icon-container">
-              <FontAwesomeIcon icon={faPhone} className="phone-3d-icon" />
-            </div>
+
             <div className="contact-form">
               {formStatus === 'success' ? (
                 <div className="form-success-message">
