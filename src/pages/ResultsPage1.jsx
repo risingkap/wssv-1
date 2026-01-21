@@ -257,16 +257,12 @@ function ResultsPage() {
                                     word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                                   ).join(' ') ||
                                   result.disease.replace(/_/g, ' ');
-                
-                const severity = info?.severity || "Unknown";
-                const severityClass = severity.toLowerCase().includes('high') ? 'high' : 
-                                   severity.toLowerCase().includes('medium') ? 'medium' : 'low';
 
                 return (
                   <div key={index} className="condition-card">
                     <div className="condition-info">
                       <h3>{diseaseName}</h3>
-                      <p className={`severity-text ${severityClass}`}>Severity: {severity}</p>
+                      
                     </div>
                     <div className="progress-circle" style={{'--progress': result.percentage}}>
                       <span className="progress-value">{result.percentage}%</span>
