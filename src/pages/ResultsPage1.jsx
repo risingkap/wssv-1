@@ -21,6 +21,7 @@ import {
   CONDITION_DESCRIPTIONS
 } from './MedicalConditions';
 import { BASE_QUESTIONS } from './selfAssessmentQuestions';
+import { CONFIG } from '../config';
 
 const DISPLAY_THRESHOLDS = {
   'INFLAMMATORY': 25,
@@ -340,7 +341,7 @@ function ResultsPage() {
             <div className="recommendation-note">
               <p>Note: For a more personalized recommendation, contact a professional.</p>
             </div>
-            <button className="book-appointment-btn">
+            <button className="book-appointment-btn" onClick={() => window.location.href = CONFIG.BOOKING_URL}>
               Book an Appointment
             </button>
           </div>

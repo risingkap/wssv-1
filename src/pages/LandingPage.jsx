@@ -7,10 +7,28 @@ import {
   faCheck, faXmark, faMobileScreen, faUserDoctor, faStethoscope,
   faImage, faHome, faInfoCircle, faQuestionCircle
 } from '@fortawesome/free-solid-svg-icons';
+import { CONFIG } from '../config';
 
 function LandingPage() {
   const navigate = useNavigate();
   const [formStatus, setFormStatus] = useState('');
+
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    document.addEventListener('scroll', handleScroll);
+    return () => {
+      document.removeEventListener('scroll', handleScroll);
+    };
+  }, [scrolled]);
 
   const handleContactSubmit = (e) => {
     e.preventDefault();
@@ -22,6 +40,10 @@ function LandingPage() {
 
   const handleStart = () => {
     navigate('/upload');
+  };
+
+  const handleBookAppointment = () => {
+    window.location.href = CONFIG.BOOKING_URL;
   };
 
   useEffect(() => {
@@ -40,7 +62,7 @@ function LandingPage() {
   return (
     <div className="landing-wrapper">
       {/* Header */}
-      <nav className="navbar">
+      <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
         <div className="nav-container">
           <div className="logo">SkinSight AI</div>
 
@@ -60,6 +82,13 @@ function LandingPage() {
         <div className="container animate-fade-in">
           <h1 className="hero-title">Empower Your Skin Health Journey</h1>
 
+          <div className="hero-cta-group">
+            <button className="btn-primary-hero" onClick={handleStart}>Start Scan</button>
+            <button className="btn-secondary-hero" onClick={handleBookAppointment}>
+              Book Appointment
+            </button>
+          </div>
+
           <div className="phone-mockup-container">
             <div className="phone-mockup animate-scale-in">
               <FontAwesomeIcon icon={faMobileScreen} className="phone-icon" />
@@ -75,15 +104,7 @@ function LandingPage() {
             </p>
           </div>
 
-          <div className="trusted-section">
-            <p className="trusted-label">Trusted by</p>
-            <div className="brand-logos">
-              <div className="logo-placeholder">Logaipsum</div>
-              <div className="logo-placeholder">LOGOIPSUM</div>
-              <div className="logo-placeholder">logoipsum</div>
-              <div className="logo-placeholder">Logaipsum</div>
-            </div>
-          </div>
+
         </div>
       </header>
 
@@ -294,17 +315,6 @@ function LandingPage() {
         <FontAwesomeIcon icon={faCamera} />
       </div>
 
-      <div className="floating-nav">
-        <a href="#home" className="nav-icon-link" title="Home">
-          <FontAwesomeIcon icon={faHome} />
-        </a>
-        <a href="#about" className="nav-icon-link" title="About">
-          <FontAwesomeIcon icon={faInfoCircle} />
-        </a>
-        <a href="#how-to-use" className="nav-icon-link" title="How To Use">
-          <FontAwesomeIcon icon={faQuestionCircle} />
-        </a>
-      </div>
     </div>
   );
 }

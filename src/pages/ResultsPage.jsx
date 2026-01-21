@@ -17,6 +17,7 @@ import {
   DISEASES,
   calculateWeightedResults,
 } from './SelfAssessment';
+import { CONFIG } from '../config';
 
 const CONDITION_DESCRIPTIONS = {
   "Acne": {
@@ -26,7 +27,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Keep your face clean, avoid scrubbing and tiggers. try over-the-counter creams. For stubborn cases, see a doctor for prescription creams or pills.", "Be gentle with your skin, avoid your triggers, and ask about creams or pills to calm the redness and swelling.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -37,7 +38,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Don’t ignore these—get them checked. Your doctor may freeze, scrape, or remove them. Sunscreen is your best friend.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -48,7 +49,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Moisturize often, avoid triggers like soaps or fabrics, and use gentle creams to reduce itching.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -59,7 +60,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Don’t pop the blisters. See a specialist for proper diagnosis. Treatment often includes steroids or immune-calming meds.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -70,7 +71,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Don’t wait—these usually need antibiotics. Keep the area clean and avoid picking.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -81,7 +82,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Moisturize often, avoid triggers like soaps or fabrics, and use gentle creams to reduce itching.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -92,7 +93,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Stop any new meds and see a doctor. Mild cases get better with rest and antihistamines. Severe ones need urgent care.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -103,7 +104,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Some hair loss gets better on its own. Treatments like minoxidil or steroid injections can help. Talk to your doctor early.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -114,7 +115,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Practice safe sex, get tested, and ask your doctor about antiviral medications or wart treatments.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -125,7 +126,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Protect your skin from the sun and try prescribed creams. Some people may benefit from lasers or light therapy.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -136,7 +137,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Wear sunscreen every day. See a doctor regularly to manage flares and protect organs with medication if needed.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -147,7 +148,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Get your moles checked regularly. If one looks different, see a doctor. Early removal saves lives.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -158,7 +159,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Keep nails trimmed and dry. OTC creams may help, but pills from your doctor work best.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -169,7 +170,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Avoid what caused it, apply soothing creams, and don’t scratch. For bad cases, a short course of steroids may help.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -180,7 +181,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Moisturize, manage stress, and try prescription creams or light therapy. Severe types may need injectable medications.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -191,7 +192,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Consult a dermatologist for personalized advice.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -202,7 +203,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["No treatment is needed unless they bother you. A doctor can freeze or shave them off if needed.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -213,7 +214,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Treating the main condition usually helps the skin. Don’t ignore new skin changes—tell your doctor.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -224,7 +225,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Use antifungal creams and keep skin dry. See a doctor if it doesn’t go away or keeps coming back.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -235,7 +236,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Try antihistamines and figure out your triggers. If it lasts longer than 6 weeks, see a doctor.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -246,7 +247,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Most shrink over time. If they bleed, grow fast, or block vision, see a specialist.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -257,7 +258,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Don’t ignore these—they may signal something serious. Doctors may give steroids or other immune medications.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   },
@@ -268,7 +269,7 @@ const CONDITION_DESCRIPTIONS = {
     recommendations: ["Leave them alone or try over-the-counter treatments. Doctors can freeze or treat them if they don’t go away.",
       {
         text: "Consult a dermatologist for personalized advice.",
-        link: "https://dermatologysolutions.as.me/schedule/d6bc36cb"
+        link: CONFIG.BOOKING_URL
       }
     ]
   }
