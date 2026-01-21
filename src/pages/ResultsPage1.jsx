@@ -52,6 +52,23 @@ function ResultsPage() {
   // Extract top prediction with all enriched details
   const topPrediction = getTopPredictionWithDetails(predictions);
   
+  if (!topPrediction) {
+    return (
+      <div className="results-container">
+        <div className="results-content">
+          <div className="error-state">
+            <FaExclamationTriangle className="error-icon" />
+            <h2>Error</h2>
+            <p>Unable to process prediction data.</p>
+            <button className="action-btn secondary-btn" onClick={() => navigate('/')}>
+              <FaHome /> Return Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   // Calculate urgency level based on prediction
   const urgencyLevel = calculateUrgencyLevel(topPrediction);
 
@@ -100,16 +117,11 @@ function ResultsPage() {
                 
                 // Format disease name for display
                 const diseaseName = formatDiseaseName(result.disease, conditionInfo);
-                
-                // Get severity and CSS class
-                const severity = conditionInfo?.severity || "Unknown";
-                const severityClass = getSeverityClass(severity);
 
                 return (
                   <div key={index} className="condition-card">
                     <div className="condition-info">
                       <h3>{diseaseName}</h3>
-                      <p className={`severity-text ${severityClass}`}>Severity: {severity}</p>
                     </div>
                     <div className="progress-circle" style={{'--progress': result.percentage}}>
                       <span className="progress-value">{result.percentage}%</span>
@@ -183,12 +195,16 @@ function ResultsPage() {
           <div className="column-right">
             <h2 className="section-title">Recommendations</h2>
             <div className="recommendations-list">
-              {topPrediction.recommendations.map((rec, index) => (
-                <div key={index} className="recommendation-item">
-                  <FaCheckCircle className="recommendation-icon" />
-                  <span>{typeof rec === "string" ? rec : rec.text}</span>
-                </div>
-              ))}
+              {topPrediction?.recommendations && topPrediction.recommendations.length > 0 ? (
+                topPrediction.recommendations.map((rec, index) => (
+                  <div key={index} className="recommendation-item">
+                    <FaCheckCircle className="recommendation-icon" />
+                    <span>{typeof rec === "string" ? rec : rec.text}</span>
+                  </div>
+                ))
+              ) : (
+                <p>No recommendations available</p>
+              )}
             </div>
             <div className="recommendation-note">
               <p>Note: For a more personalized recommendation, contact a professional.</p>
