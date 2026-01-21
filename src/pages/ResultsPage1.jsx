@@ -100,11 +100,16 @@ function ResultsPage() {
                 
                 // Format disease name for display
                 const diseaseName = formatDiseaseName(result.disease, conditionInfo);
+                
+                // Get severity and CSS class
+                const severity = conditionInfo?.severity || "Unknown";
+                const severityClass = getSeverityClass(severity);
 
                 return (
                   <div key={index} className="condition-card">
                     <div className="condition-info">
                       <h3>{diseaseName}</h3>
+                      <p className={`severity-text ${severityClass}`}>Severity: {severity}</p>
                     </div>
                     <div className="progress-circle" style={{'--progress': result.percentage}}>
                       <span className="progress-value">{result.percentage}%</span>
@@ -116,6 +121,7 @@ function ResultsPage() {
               <div className="condition-card">
                 <div className="condition-info">
                   <h3>No Conditions Detected</h3>
+                  <p className="severity-text low">Severity: Low</p>
                 </div>
                 <div className="progress-circle" style={{'--progress': 0}}>
                   <span className="progress-value">0%</span>

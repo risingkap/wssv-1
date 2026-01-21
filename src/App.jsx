@@ -6,7 +6,6 @@ import SelfAssessment from './pages/SelfAssessment';
 import AdaptiveQuestionnaire from './pages/AdaptiveQuestionnaire';
 import CameraPage from './pages/CameraPage';
 import ReviewPage from './pages/ReviewPage';
-import ResultsPage from './pages/ResultsPage';
 import ResultsPage1 from './pages/ResultsPage1';
 import './App.css';
 
