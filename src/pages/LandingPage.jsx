@@ -235,9 +235,7 @@ function LandingPage() {
         <div className="container">
           <h2 className="section-title">Connect with us</h2>
           <div className="connect-content">
-            <div className="phone-icon-container">
-              <FontAwesomeIcon icon={faPhone} className="phone-3d-icon" />
-            </div>
+
             <div className="contact-form">
               {formStatus === 'success' ? (
                 <div className="form-success-message">
