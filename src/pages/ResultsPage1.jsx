@@ -132,25 +132,30 @@ function ResultsPage() {
       const categoryThreshold = DISPLAY_THRESHOLDS[targetCategory] || DISPLAY_THRESHOLDS.DEFAULT;
       
       if (Object.keys(categoryData).length > 0) {
-        const top4 = Object.entries(categoryData)
+        const top3 = Object.entries(categoryData)
           .sort((a, b) => b[1] - a[1])
-          .slice(0, 4);
+          .slice(0, 3);
 
-        const totalScore = top4.reduce((sum, [, score]) => sum + score, 0);
+        const totalScore = top3.reduce((sum, [, score]) => sum + score, 0);
         
-        const normalizedResults = top4
-          .map(([disease, score]) => {
-            const percentage = totalScore > 0 ? (score / totalScore) * 100 : 0;
-            return {
-              disease,
-              percentage: Number(percentage.toFixed(1)),
-              category: targetCategory,
-              threshold: categoryThreshold
-            };
-          })
-          .filter(result => result.percentage >= categoryThreshold);
-
-        results.push(...normalizedResults);
+        const normalized = top3.map(([disease, score], index) => {
+          const percentage = totalScore > 0 ? (score / totalScore) * 100 : 0;
+          return {
+            disease,
+            percentage: Number(percentage.toFixed(0)),
+            category: targetCategory,
+            threshold: categoryThreshold,
+            index
+          };
+        });
+        
+        // Adjust last item to ensure sum equals 100%
+        if (normalized.length > 0) {
+          const sumOfFirst = normalized.slice(0, -1).reduce((sum, r) => sum + r.percentage, 0);
+          normalized[normalized.length - 1].percentage = 100 - sumOfFirst;
+        }
+        
+        results.push(...normalized);
       }
     } else if (assessmentData) {
       const categories = ['INFLAMMATORY', 'INFECTIOUS', 'AUTOIMMUNE', 'BENIGN_GROWTH', 'PIGMENTARY', 'SKIN_CANCER', 'ENVIRONMENTAL'];
@@ -161,25 +166,30 @@ function ResultsPage() {
         const categoryThreshold = DISPLAY_THRESHOLDS[category] || DISPLAY_THRESHOLDS.DEFAULT;
         
         if (categoryData && Object.keys(categoryData).length > 0) {
-          const top4 = Object.entries(categoryData)
+          const top3 = Object.entries(categoryData)
             .sort((a, b) => b[1] - a[1])
-            .slice(0, 4);
+            .slice(0, 3);
 
-          const totalScore = top4.reduce((sum, [, score]) => sum + score, 0);
+          const totalScore = top3.reduce((sum, [, score]) => sum + score, 0);
           
-          const normalizedResults = top4
-            .map(([disease, score]) => {
-              const percentage = totalScore > 0 ? (score / totalScore) * 100 : 0;
-              return {
-                disease,
-                percentage: Number(percentage.toFixed(1)),
-                category: category,
-                threshold: categoryThreshold
-              };
-            })
-            .filter(result => result.percentage >= categoryThreshold);
-
-          results.push(...normalizedResults);
+          const normalized = top3.map(([disease, score], index) => {
+            const percentage = totalScore > 0 ? (score / totalScore) * 100 : 0;
+            return {
+              disease,
+              percentage: Number(percentage.toFixed(1)),
+              category: category,
+              threshold: categoryThreshold,
+              index
+            };
+          });
+          
+          // Adjust last item to ensure sum equals 100%
+          if (normalized.length > 0) {
+            const sumOfFirst = normalized.slice(0, -1).reduce((sum, r) => sum + r.percentage, 0);
+            normalized[normalized.length - 1].percentage = 100 - sumOfFirst;
+          }
+          
+          results.push(...normalized);
         }
       });
     }
@@ -225,7 +235,7 @@ function ResultsPage() {
           <h2 className="section-title">Detected Conditions</h2>
           <div className="conditions-grid">
             {allDiseaseResults.length > 0 ? (
-              allDiseaseResults.slice(0, 4).map((result, index) => {
+              allDiseaseResults.slice(0, 3).map((result, index) => {
                 // Try multiple key formats to find the condition
                 const key1 = result.disease.replace(/_/g, ' ');
                 const key2 = result.disease.replace(/_/g, '').replace(/\b\w/g, l => l.toUpperCase());

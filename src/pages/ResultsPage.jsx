@@ -424,21 +424,27 @@ function ResultsPage() {
     // Get the weighted category data
     const categoryData = weightedCategories[targetCategory];
 
-    // Get top 4 diseases by score (before normalization)
-    const top4 = Object.entries(categoryData)
+    // Get top 3 diseases by score (before normalization)
+    const top3 = Object.entries(categoryData)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 4);
+      .slice(0, 3);
 
-    // Calculate total of just the top 4 scores
-    const top4Total = top4.reduce((sum, [, score]) => sum + score, 0);
+    // Calculate total of just the top 3 scores
+    const top3Total = top3.reduce((sum, [, score]) => sum + score, 0);
 
-    // Normalize only the top 4 to sum to 100%
-    const normalizedTop4 = top4.map(([disease, score]) => {
-      const percentage = top4Total > 0 ? (score / top4Total) * 100 : 0;
-      return [disease, Number(percentage.toFixed(2))];
+    // Normalize only the top 3 to sum to 100%
+    const normalized = top3.map(([disease, score]) => {
+      const percentage = top3Total > 0 ? (score / top3Total) * 100 : 0;
+      return [disease, Number(percentage.toFixed(0))];
     });
 
-    return normalizedTop4;
+    // Adjust last item to ensure sum equals 100%
+    if (normalized.length > 0) {
+      const sumOfFirst = normalized.slice(0, -1).reduce((sum, item) => sum + item[1], 0);
+      normalized[normalized.length - 1][1] = 100 - sumOfFirst;
+    }
+
+    return normalized;
   };
 
   return (
