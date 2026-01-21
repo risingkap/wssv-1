@@ -12,27 +12,16 @@ import {
 } from 'react-icons/fa';
 import './css/ResultsPage.css';
 
+// Utility imports
 import {
-  calculateWeightedResults,
-  getTargetCategory
-} from './SelfAssessment';
-
-import {
-  CONDITION_DESCRIPTIONS
-} from './MedicalConditions';
-import { BASE_QUESTIONS } from './selfAssessmentQuestions';
-import { CONFIG } from '../config';
-
-const DISPLAY_THRESHOLDS = {
-  'INFLAMMATORY': 25,
-  'INFECTIOUS': 20,
-  'AUTOIMMUNE': 30,
-  'BENIGN_GROWTH': 15,
-  'PIGMENTARY': 25,
-  'SKIN_CANCER': 10,
-  'ENVIRONMENTAL': 20,
-  'DEFAULT': 25
-};
+  getTopPredictionWithDetails,
+  findConditionDescription,
+  formatDiseaseName
+} from '../utils/predictionProcessing';
+import { calculateUrgencyLevel } from '../utils/urgencyCalculator';
+import { getAllCategoriesResults } from '../utils/diseaseScoring';
+import { generateAndDownloadReport } from '../utils/reportGenerator';
+import { formatAssessmentAnswers } from '../utils/assessmentFormatter';
 
 function ResultsPage() {
   const navigate = useNavigate();
@@ -60,155 +49,25 @@ function ResultsPage() {
     );
   }
 
-  const sortedPredictionsRaw = Object.entries(predictions.predictions)
-    .map(([condition, probability]) => {
-      const desc = CONDITION_DESCRIPTIONS[condition] || {};
-      return {
-        condition,
-        probability,
-        name: desc.name || condition,
-        description: desc.description,
-        description1: desc.description1,
-        treatment: desc.treatment || "Unknown",
-        recommendations: desc.recommendations || [],
-        severity: desc.severity || "Unknown"
-      };
-    })
-    .sort((a, b) => b.probability - a.probability)
-    .slice(0, 1);
-
-  const topPrediction = sortedPredictionsRaw[0];
-  const urgencyLevel =
-    topPrediction.probability > 0.7 && (topPrediction.condition === 'MEL' || topPrediction.condition === 'SCC')
-      ? 'high'
-      : topPrediction.probability > 0.5
-        ? 'moderate'
-        : 'low';
+  // Extract top prediction with all enriched details
+  const topPrediction = getTopPredictionWithDetails(predictions);
+  
+  // Calculate urgency level based on prediction
+  const urgencyLevel = calculateUrgencyLevel(topPrediction);
 
   const handleDownloadReport = () => {
-    const reportContent = `
-      <html>
-        <head>
-          <title>Skin Analysis Report</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 2rem; }
-            .section { margin-bottom: 2rem; }
-            .condition { margin-bottom: 1rem; background: #f5f5f5; padding: 1rem; }
-            .urgency.high { color: red; }
-            .urgency.moderate { color: orange; }
-            .urgency.low { color: green; }
-            .note { font-style: italic; color: #666; margin-top: 10px; }
-          </style>
-        </head>
-        <body>
-          <h1>Skin Analysis Report</h1>
-          <p>Generated: ${new Date().toLocaleString()}</p>
-          <img src="${capturedImage}" alt="Skin" width="300"/>
-          <div class="urgency ${urgencyLevel}">Urgency: ${urgencyLevel.toUpperCase()}</div>
-          <div class="note">
-            Note: Conditions are filtered by category-specific display thresholds.
-          </div>
-        </body>
-      </html>
-    `;
-
-    const blob = new Blob([reportContent], { type: 'text/html' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `skin-analysis-${new Date().toISOString().split('T')[0]}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+    generateAndDownloadReport(capturedImage, urgencyLevel);
   };
 
-  const getAllCategoriesResults = () => {
-    const results = [];
-    
-    if (isAdaptive && diseaseScores && Object.keys(diseaseScores).length > 0) {
-      const targetCategory = getTargetCategory(topPrediction.condition);
-      const categoryData = diseaseScores;
-      const categoryThreshold = DISPLAY_THRESHOLDS[targetCategory] || DISPLAY_THRESHOLDS.DEFAULT;
-      
-      if (Object.keys(categoryData).length > 0) {
-        const top3 = Object.entries(categoryData)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 3);
-
-        const totalScore = top3.reduce((sum, [, score]) => sum + score, 0);
-        
-        const normalized = top3.map(([disease, score], index) => {
-          const percentage = totalScore > 0 ? (score / totalScore) * 100 : 0;
-          return {
-            disease,
-            percentage: Number(percentage.toFixed(0)),
-            category: targetCategory,
-            threshold: categoryThreshold,
-            index
-          };
-        });
-        
-        // Adjust last item to ensure sum equals 100%
-        if (normalized.length > 0) {
-          const sumOfFirst = normalized.slice(0, -1).reduce((sum, r) => sum + r.percentage, 0);
-          normalized[normalized.length - 1].percentage = 100 - sumOfFirst;
-        }
-        
-        results.push(...normalized);
-      }
-    } else if (assessmentData) {
-      const categories = ['INFLAMMATORY', 'INFECTIOUS', 'AUTOIMMUNE', 'BENIGN_GROWTH', 'PIGMENTARY', 'SKIN_CANCER', 'ENVIRONMENTAL'];
-      
-      categories.forEach(category => {
-        const weightedCategories = calculateWeightedResults(assessmentData, topPrediction.condition);
-        const categoryData = weightedCategories[category];
-        const categoryThreshold = DISPLAY_THRESHOLDS[category] || DISPLAY_THRESHOLDS.DEFAULT;
-        
-        if (categoryData && Object.keys(categoryData).length > 0) {
-          const top3 = Object.entries(categoryData)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 3);
-
-          const totalScore = top3.reduce((sum, [, score]) => sum + score, 0);
-          
-          const normalized = top3.map(([disease, score], index) => {
-            const percentage = totalScore > 0 ? (score / totalScore) * 100 : 0;
-            return {
-              disease,
-              percentage: Number(percentage.toFixed(1)),
-              category: category,
-              threshold: categoryThreshold,
-              index
-            };
-          });
-          
-          // Adjust last item to ensure sum equals 100%
-          if (normalized.length > 0) {
-            const sumOfFirst = normalized.slice(0, -1).reduce((sum, r) => sum + r.percentage, 0);
-            normalized[normalized.length - 1].percentage = 100 - sumOfFirst;
-          }
-          
-          results.push(...normalized);
-        }
-      });
-    }
-
-    return results.sort((a, b) => b.percentage - a.percentage);
-  };
-
-  const allDiseaseResults = getAllCategoriesResults();
+  const allDiseaseResults = getAllCategoriesResults({
+    isAdaptive,
+    diseaseScores,
+    assessmentData,
+    topCondition: topPrediction?.condition
+  });
 
   // Get assessment answers for display
-  const assessmentAnswers = assessmentData ? Object.entries(assessmentData).map(([key, value]) => {
-    const questionId = parseInt(key);
-    const questionData = BASE_QUESTIONS[questionId];
-    return {
-      question: questionData?.text || `Question ${key}`,
-      answer: value,
-      questionId: questionId
-    };
-  }) : [];
+  const assessmentAnswers = formatAssessmentAnswers(assessmentData);
 
   return (
     <div className="results-container">
@@ -236,34 +95,16 @@ function ResultsPage() {
           <div className="conditions-grid">
             {allDiseaseResults.length > 0 ? (
               allDiseaseResults.slice(0, 3).map((result, index) => {
-                // Try multiple key formats to find the condition
-                const key1 = result.disease.replace(/_/g, ' ');
-                const key2 = result.disease.replace(/_/g, '').replace(/\b\w/g, l => l.toUpperCase());
-                const key3 = result.disease.split('_').map(word => 
-                  word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-                ).join(' ');
+                // Get condition information
+                const conditionInfo = findConditionDescription(result.disease);
                 
-                // Find the condition info using any matching key
-                const info = CONDITION_DESCRIPTIONS[key1] || 
-                            CONDITION_DESCRIPTIONS[key2] || 
-                            CONDITION_DESCRIPTIONS[key3] ||
-                            Object.values(CONDITION_DESCRIPTIONS).find(desc => 
-                              desc.name && desc.name.toLowerCase().replace(/\s+/g, '') === 
-                              result.disease.toLowerCase().replace(/_/g, '')
-                            );
-                
-                // Get disease name - use info.name if available, otherwise format the disease key
-                const diseaseName = info?.name || 
-                                  result.disease.split('_').map(word => 
-                                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-                                  ).join(' ') ||
-                                  result.disease.replace(/_/g, ' ');
+                // Format disease name for display
+                const diseaseName = formatDiseaseName(result.disease, conditionInfo);
 
                 return (
                   <div key={index} className="condition-card">
                     <div className="condition-info">
                       <h3>{diseaseName}</h3>
-                      
                     </div>
                     <div className="progress-circle" style={{'--progress': result.percentage}}>
                       <span className="progress-value">{result.percentage}%</span>
@@ -275,7 +116,6 @@ function ResultsPage() {
               <div className="condition-card">
                 <div className="condition-info">
                   <h3>No Conditions Detected</h3>
-                  <p className="severity-text low">Severity: Low</p>
                 </div>
                 <div className="progress-circle" style={{'--progress': 0}}>
                   <span className="progress-value">0%</span>
@@ -347,7 +187,7 @@ function ResultsPage() {
             <div className="recommendation-note">
               <p>Note: For a more personalized recommendation, contact a professional.</p>
             </div>
-            <button className="book-appointment-btn" onClick={() => window.location.href = CONFIG.BOOKING_URL}>
+            <button className="book-appointment-btn">
               Book an Appointment
             </button>
           </div>
