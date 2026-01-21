@@ -15,7 +15,7 @@ from app.api.class_loader import load_class_names
 logger = logging.getLogger(__name__)
 
 # OUTPUT PROCESSOR - Extract and normalize model predictions
- 
+
 class OutputProcessor:
     """Handles extraction and normalization of predictions from various model output formats."""
 

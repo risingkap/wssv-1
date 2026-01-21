@@ -133,7 +133,6 @@ function ResultsPage() {
               <div className="condition-card">
                 <div className="condition-info">
                   <h3>No Conditions Detected</h3>
-                  <p className="severity-text low">Severity: Low</p>
                 </div>
                 <div className="progress-circle" style={{'--progress': 0}}>
                   <span className="progress-value">0%</span>
