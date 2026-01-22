@@ -81,7 +81,7 @@ function ResultsPage() {
     diseaseScores,
     assessmentData,
     topCondition: topPrediction?.condition
-  });
+  }).filter(result => result.percentage > 0); // Filter out negative or zero percentages
 
   // Get assessment answers for display
   const assessmentAnswers = formatAssessmentAnswers(assessmentData);
