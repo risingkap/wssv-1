@@ -70,8 +70,7 @@ function ResultsPage() {
         description: desc.description,
         description1: desc.description1,
         treatment: desc.treatment || "Unknown",
-        recommendations: desc.recommendations || [],
-        severity: desc.severity || "Unknown"
+        recommendations: desc.recommendations || []
       };
     })
     .sort((a, b) => b.probability - a.probability)
@@ -89,24 +88,152 @@ function ResultsPage() {
     const reportContent = `
       <html>
         <head>
-          <title>Skin Analysis Report</title>
+          <title>SkinSight AI Analysis Report</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 2rem; }
-            .section { margin-bottom: 2rem; }
-            .condition { margin-bottom: 1rem; background: #f5f5f5; padding: 1rem; }
-            .urgency.high { color: red; }
-            .urgency.moderate { color: orange; }
-            .urgency.low { color: green; }
-            .note { font-style: italic; color: #666; margin-top: 10px; }
+            body { 
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+              padding: 40px; 
+              color: #333;
+              line-height: 1.6;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 2px solid #1e3a8a;
+              margin-bottom: 30px;
+              padding-bottom: 20px;
+            }
+            .header h1 { color: #1e3a8a; margin: 0; }
+            .meta-info {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 30px;
+              font-size: 0.9rem;
+              color: #666;
+            }
+            .section { margin-bottom: 40px; }
+            .section-title {
+              font-size: 1.2rem;
+              font-weight: bold;
+              color: #1e3a8a;
+              border-bottom: 1px solid #e5e7eb;
+              margin-bottom: 15px;
+              padding-bottom: 5px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+            th, td {
+              text-align: left;
+              padding: 12px;
+              border: 1px solid #e5e7eb;
+            }
+            th {
+              background-color: #f8fafc;
+              color: #1e3a8a;
+              font-weight: 600;
+            }
+            .image-container {
+              text-align: center;
+              margin-bottom: 30px;
+            }
+            .image-container img {
+              max-width: 400px;
+              border-radius: 8px;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            .recommendation-item {
+              margin-bottom: 8px;
+              padding-left: 20px;
+              position: relative;
+            }
+            .recommendation-item::before {
+              content: "•";
+              position: absolute;
+              left: 0;
+              color: #1e3a8a;
+              font-weight: bold;
+            }
+            .footer {
+              margin-top: 50px;
+              font-size: 0.8rem;
+              color: #999;
+              text-align: center;
+              border-top: 1px solid #eee;
+              padding-top: 20px;
+            }
           </style>
         </head>
         <body>
-          <h1>Skin Analysis Report</h1>
-          <p>Generated: ${new Date().toLocaleString()}</p>
-          <img src="${capturedImage}" alt="Skin" width="300"/>
-          <div class="urgency ${urgencyLevel}">Urgency: ${urgencyLevel.toUpperCase()}</div>
-          <div class="note">
-            Note: Conditions are filtered by category-specific display thresholds.
+          <div class="header">
+            <h1>SkinSight AI Analysis Report</h1>
+          </div>
+
+          <div class="meta-info">
+            <span>Report ID: SS-${Math.floor(Math.random() * 1000000)}</span>
+            <span>Generated: ${new Date().toLocaleString()}</span>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Analysis Image</div>
+            <div class="image-container">
+              <img src="${capturedImage}" alt="Skin Analysis Image"/>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Top Detected Conditions</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Condition</th>
+                  <th>Confidence Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allDiseaseResults.slice(0, 4).map(res => `
+                  <tr>
+                    <td>${res.disease.replace(/_/g, ' ')}</td>
+                    <td>${res.percentage}%</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Self-Assessment Data</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Question</th>
+                  <th>User Answer</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${assessmentAnswers.map(item => `
+                  <tr>
+                    <td>${item.question}</td>
+                    <td>${item.answer}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Clinical Recommendations</div>
+            <div class="recommendations">
+              ${topPrediction.recommendations.map(rec => `
+                <div class="recommendation-item">${typeof rec === "string" ? rec : rec.text}</div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>This report is generated by AI for informational purposes only and does not substitute professional medical advice.</p>
+            <p>© 2025 SkinSight AI. All rights reserved.</p>
           </div>
         </body>
       </html>
@@ -249,15 +376,13 @@ function ResultsPage() {
                                   ).join(' ') ||
                                   result.disease.replace(/_/g, ' ');
                 
-                const severity = info?.severity || "Unknown";
-                const severityClass = severity.toLowerCase().includes('high') ? 'high' : 
-                                   severity.toLowerCase().includes('medium') ? 'medium' : 'low';
+
 
                 return (
                   <div key={index} className="condition-card">
                     <div className="condition-info">
                       <h3>{diseaseName}</h3>
-                      <p className={`severity-text ${severityClass}`}>Severity: {severity}</p>
+
                     </div>
                     <div className="progress-circle" style={{'--progress': result.percentage}}>
                       <span className="progress-value">{result.percentage}%</span>
@@ -269,7 +394,7 @@ function ResultsPage() {
               <div className="condition-card">
                 <div className="condition-info">
                   <h3>No Conditions Detected</h3>
-                  <p className="severity-text low">Severity: Low</p>
+
                 </div>
                 <div className="progress-circle" style={{'--progress': 0}}>
                   <span className="progress-value">0%</span>

@@ -23,7 +23,6 @@ const CONDITION_DESCRIPTIONS = {
   "Acne": {
     name: "Acne",
     description: "Acne appears as pimples and blackheads on the face, back, or chest, while rosacea shows as redness and small bumps on the cheeks and nose.",
-    severity: "low",
     recommendations: ["Keep your face clean, avoid scrubbing and tiggers. try over-the-counter creams. For stubborn cases, see a doctor for prescription creams or pills.", "Be gentle with your skin, avoid your triggers, and ask about creams or pills to calm the redness and swelling.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -34,7 +33,6 @@ const CONDITION_DESCRIPTIONS = {
   "Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions": {
     name: "Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions",
     description: "Rough spots or growths from too much sun that could turn into skin cancer if ignored.",
-    severity: "moderate",
     recommendations: ["Don’t ignore these—get them checked. Your doctor may freeze, scrape, or remove them. Sunscreen is your best friend.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -45,7 +43,6 @@ const CONDITION_DESCRIPTIONS = {
   "Atopic Dermatitis": {
     name: "Atopic Dermatitis",
     description: "Itchy, dry, or red patches—often from allergies or skin that’s sensitive to irritants.",
-    severity: "moderate",
     recommendations: ["Moisturize often, avoid triggers like soaps or fabrics, and use gentle creams to reduce itching.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -56,7 +53,6 @@ const CONDITION_DESCRIPTIONS = {
   "Bullous Disease": {
     name: "Bullous Disease",
     description: "Painful blisters that appear when the body attacks the skin—can be serious and need long-term care.",
-    severity: "moderate",
     recommendations: ["Don’t pop the blisters. See a specialist for proper diagnosis. Treatment often includes steroids or immune-calming meds.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -67,7 +63,6 @@ const CONDITION_DESCRIPTIONS = {
   "Cellulitis Impetigo and other Bacterial Infections": {
     name: "Cellulitis Impetigo and other Bacterial Infections",
     description: "Red, swollen, or crusty areas on the skin from bacteria. Can spread quickly.",
-    severity: "high",
     recommendations: ["Don’t wait—these usually need antibiotics. Keep the area clean and avoid picking.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -78,7 +73,6 @@ const CONDITION_DESCRIPTIONS = {
   "Eczema": {
     name: "Eczema",
     description: "Itchy, dry, or red patches—often from allergies or skin that’s sensitive to irritants.",
-    severity: "moderate",
     recommendations: ["Moisturize often, avoid triggers like soaps or fabrics, and use gentle creams to reduce itching.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -89,7 +83,6 @@ const CONDITION_DESCRIPTIONS = {
   "Exanthems and Drug Eruptions": {
     name: "Exanthems and Drug Eruptions",
     description: "Widespread rashes from infections or medications—may come with fever or itching.",
-    severity: "high",
     recommendations: ["Stop any new meds and see a doctor. Mild cases get better with rest and antihistamines. Severe ones need urgent care.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -100,7 +93,6 @@ const CONDITION_DESCRIPTIONS = {
   "Hair Loss Alopecia and other Hair Diseases": {
     name: "Hair Loss Alopecia and other Hair Diseases",
     description: "Hair falls out in patches or thins over time due to stress, illness, or immune causes.",
-    severity: "low",
     recommendations: ["Some hair loss gets better on its own. Treatments like minoxidil or steroid injections can help. Talk to your doctor early.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -111,7 +103,6 @@ const CONDITION_DESCRIPTIONS = {
   "Herpes HPV and other STDs": {
     name: "Herpes HPV and other STDs",
     description: "Painful blisters or warts on or near the genitals, mouth, or anus caused by viruses.",
-    severity: "high",
     recommendations: ["Practice safe sex, get tested, and ask your doctor about antiviral medications or wart treatments.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -122,7 +113,6 @@ const CONDITION_DESCRIPTIONS = {
   "Light Diseases and Disorders of Pigmentation": {
     name: "Light Diseases and Disorders of Pigmentation",
     description: "Uneven skin color—like light or dark patches—from pigment loss or excess.",
-    severity: "low",
     recommendations: ["Protect your skin from the sun and try prescribed creams. Some people may benefit from lasers or light therapy.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -133,7 +123,6 @@ const CONDITION_DESCRIPTIONS = {
   "Lupus and other Connective Tissue diseases": {
     name: "Lupus and other Connective Tissue diseases",
     description: "Autoimmune diseases that affect skin and sometimes internal organs—may show as rashes, hair loss, or ulcers.",
-    severity: "high",
     recommendations: ["Wear sunscreen every day. See a doctor regularly to manage flares and protect organs with medication if needed.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -144,7 +133,6 @@ const CONDITION_DESCRIPTIONS = {
   "Melanoma Skin Cancer Nevi and Moles": {
     name: "Melanoma Skin Cancer Nevi and Moles",
     description: "Spots or moles that change in shape, size, or color and could be cancer.",
-    severity: "moderate",
     recommendations: ["Get your moles checked regularly. If one looks different, see a doctor. Early removal saves lives.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -155,7 +143,6 @@ const CONDITION_DESCRIPTIONS = {
   "Nail Fungus and other Nail Disease": {
     name: "Nail Fungus and other Nail Disease",
     description: "Thick, yellowed, or brittle nails—usually caused by fungal infections.",
-    severity: "low",
     recommendations: ["Keep nails trimmed and dry. OTC creams may help, but pills from your doctor work best.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -166,7 +153,6 @@ const CONDITION_DESCRIPTIONS = {
   "Poison Ivy and other Contact Dermatitis": {
     name: "Poison Ivy and other Contact Dermatitis",
     description: "Itchy, red rash from touching plants, soaps, or metals your skin doesn’t like.",
-    severity: "Unknown",
     recommendations: ["Avoid what caused it, apply soothing creams, and don’t scratch. For bad cases, a short course of steroids may help.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -177,7 +163,6 @@ const CONDITION_DESCRIPTIONS = {
   "Psoriasis pictures Lichen Planus and related diseases": {
     name: "Psoriasis pictures Lichen Planus and related diseases",
     description: "Red, scaly patches on the skin that come and go—often on the scalp, elbows, or knees.",
-    severity: "moderate",
     recommendations: ["Moisturize, manage stress, and try prescription creams or light therapy. Severe types may need injectable medications.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -188,7 +173,6 @@ const CONDITION_DESCRIPTIONS = {
   "Scabies Lyme Disease and other Infestations and Bites": {
     name: "Scabies Lyme Disease and other Infestations and Bites",
     description: "Description for Scabies Lyme Disease and other Infestations and Bites.",
-    severity: "Unknown",
     recommendations: ["Consult a dermatologist for personalized advice.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -199,7 +183,6 @@ const CONDITION_DESCRIPTIONS = {
   "Seborrheic Keratoses and other Benign Tumors": {
     name: "Infectious Skin Disease",
     description: "Harmless brown or black stuck-on growths—common as people age.",
-    severity: "low",
     recommendations: ["No treatment is needed unless they bother you. A doctor can freeze or shave them off if needed.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -210,7 +193,6 @@ const CONDITION_DESCRIPTIONS = {
   "Systemic Disease": {
     name: "Systemic Disease",
     description: "Diseases in other parts of the body (like the liver or thyroid) that show up as rashes or skin changes.",
-    severity: "moderate",
     recommendations: ["Treating the main condition usually helps the skin. Don’t ignore new skin changes—tell your doctor.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -221,7 +203,6 @@ const CONDITION_DESCRIPTIONS = {
   "Tinea Ringworm Candidiasis and other Fungal Infections": {
     name: "Tinea Ringworm Candidiasis and other Fungal Infections",
     description: "Itchy, red, ring-shaped rashes or white patches from fungal infections.",
-    severity: "moderate",
     recommendations: ["Use antifungal creams and keep skin dry. See a doctor if it doesn’t go away or keeps coming back.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -232,7 +213,6 @@ const CONDITION_DESCRIPTIONS = {
   "Urticaria Hives": {
     name: "Urticaria Hives",
     description: "Sudden itchy welts or swelling from allergies, heat, or unknown causes.",
-    severity: "moderate",
     recommendations: ["Try antihistamines and figure out your triggers. If it lasts longer than 6 weeks, see a doctor.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -243,7 +223,6 @@ const CONDITION_DESCRIPTIONS = {
   "Vascular Tumors": {
     name: "Vascular Tumors",
     description: "Growths made of blood vessels, like red “strawberry” marks in babies.",
-    severity: "low",
     recommendations: ["Most shrink over time. If they bleed, grow fast, or block vision, see a specialist.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -254,7 +233,6 @@ const CONDITION_DESCRIPTIONS = {
   "Vasculitis": {
     name: "Vasculitis",
     description: "Inflamed blood vessels cause purple spots, ulcers, or painful patches.",
-    severity: "moderate",
     recommendations: ["Don’t ignore these—they may signal something serious. Doctors may give steroids or other immune medications.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -265,7 +243,6 @@ const CONDITION_DESCRIPTIONS = {
   "Warts Molluscum and other Viral Infections": {
     name: "Warts Molluscum and other Viral Infections",
     description: "Bumps on the skin from viruses—can spread by touch.",
-    severity: "low",
     recommendations: ["Leave them alone or try over-the-counter treatments. Doctors can freeze or treat them if they don’t go away.",
       {
         text: "Consult a dermatologist for personalized advice.",
@@ -328,7 +305,6 @@ function ResultsPage() {
         name: desc.name || condition,
         description: desc.description,
         description1: desc.description1,
-        severity: desc.severity || "Unknown",
         recommendations: desc.recommendations || []
       };
     })
@@ -359,31 +335,133 @@ function ResultsPage() {
     const reportContent = `
       <html>
         <head>
-          <title>Skin Analysis Report</title>
+          <title>SkinSight AI Analysis Report</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 2rem; }
-            .section { margin-bottom: 2rem; }
-            .condition { margin-bottom: 1rem; background: #f5f5f5; padding: 1rem; }
-            .urgency.high { color: red; }
-            .urgency.moderate { color: orange; }
-            .urgency.low { color: green; }
+            body { 
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+              padding: 40px; 
+              color: #333;
+              line-height: 1.6;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 2px solid #1e3a8a;
+              margin-bottom: 30px;
+              padding-bottom: 20px;
+            }
+            .header h1 { color: #1e3a8a; margin: 0; }
+            .meta-info {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 30px;
+              font-size: 0.9rem;
+              color: #666;
+            }
+            .section { margin-bottom: 40px; }
+            .section-title {
+              font-size: 1.2rem;
+              font-weight: bold;
+              color: #1e3a8a;
+              border-bottom: 1px solid #e5e7eb;
+              margin-bottom: 15px;
+              padding-bottom: 5px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+            th, td {
+              text-align: left;
+              padding: 12px;
+              border: 1px solid #e5e7eb;
+            }
+            th {
+              background-color: #f8fafc;
+              color: #1e3a8a;
+              font-weight: 600;
+            }
+            .image-container {
+              text-align: center;
+              margin-bottom: 30px;
+            }
+            .image-container img {
+              max-width: 400px;
+              border-radius: 8px;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            .recommendation-item {
+              margin-bottom: 8px;
+              padding-left: 20px;
+              position: relative;
+            }
+            .recommendation-item::before {
+              content: "•";
+              position: absolute;
+              left: 0;
+              color: #1e3a8a;
+              font-weight: bold;
+            }
+            .footer {
+              margin-top: 50px;
+              font-size: 0.8rem;
+              color: #999;
+              text-align: center;
+              border-top: 1px solid #eee;
+              padding-top: 20px;
+            }
           </style>
         </head>
         <body>
-          <h1>Skin Condition Analysis Report</h1>
-          <p>Generated: ${new Date().toLocaleString()}</p>
-          <img src="${capturedImage}" alt="Skin" width="300"/>
-          <div class="urgency ${urgencyLevel}">Urgency: ${urgencyLevel.toUpperCase()}</div>
-          ${sortedPredictions.map(pred => `
-            <div class="condition">
-              <h2>${pred.name} (${(pred.probability * 100).toFixed(1)}%)</h2>
-              <p><strong>Severity:</strong> ${pred.severity}</p>
-              <p>${pred.description}</p>
-              <p>${pred.description1}</p>
-              <h4>Recommendations:</h4>
-              <ul>${pred.recommendations.map(rec => `<li>${rec}</li>`).join('')}</ul>
+          <div class="header">
+            <h1>SkinSight AI Analysis Report</h1>
+          </div>
+
+          <div class="meta-info">
+            <span>Report ID: SS-${Math.floor(Math.random() * 1000000)}</span>
+            <span>Generated: ${new Date().toLocaleString()}</span>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Analysis Image</div>
+            <div class="image-container">
+              <img src="${capturedImage}" alt="Skin Analysis Image"/>
             </div>
-          `).join('')}
+          </div>
+
+          <div class="section">
+            <div class="section-title">Top Detected Conditions</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Condition</th>
+                  <th>Confidence Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${sortedPredictions.map(pred => `
+                  <tr>
+                    <td>${pred.name}</td>
+                    <td>${(pred.probability * 100).toFixed(1)}%</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Clinical Recommendations</div>
+            <div class="recommendations">
+              ${topPrediction.recommendations.map(rec => `
+                <div class="recommendation-item">${typeof rec === "string" ? rec : rec.text}</div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>This report is generated by AI for informational purposes only and does not substitute professional medical advice.</p>
+            <p>© 2025 SkinSight AI. All rights reserved.</p>
+          </div>
         </body>
       </html>
     `;
