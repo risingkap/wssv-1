@@ -37,24 +37,13 @@
 }
 
 /* Header/Navbar */
-/* Header/Navbar */
 .navbar {
-  background-color: #ffffff;
+  background: var(--bg-white);
   padding: 20px 0;
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 9999;
+  z-index: 1000;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-}
-
-.navbar.scrolled {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  padding: 15px 0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .nav-container {
@@ -110,7 +99,7 @@
 
 /* Hero Section */
 .hero-section {
-  padding: 160px 0 100px;
+  padding: 80px 0 100px;
   text-align: center;
   background: linear-gradient(
     to bottom,
@@ -555,14 +544,26 @@
 }
 
 .connect-content {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
   margin-top: 60px;
 }
 
+.phone-icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.phone-3d-icon {
+  font-size: 8rem;
+  color: var(--dark-blue);
+  filter: drop-shadow(0 10px 30px rgba(30, 64, 175, 0.3));
+}
+
 .contact-form {
-  width: 100%;
-  max-width: 600px;
   background: var(--bg-white);
   padding: 40px;
   border-radius: 12px;
@@ -894,15 +895,15 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
-  font-size: 1.5rem;
   cursor: pointer;
-  transition: all 0.3s;
+  font-size: 1.5rem;
   z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid white;
 }
 
 .floating-scan:hover {
   transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 8px 25px rgba(30, 64, 175, 0.5);
   background: var(--primary-blue);
 }
 
