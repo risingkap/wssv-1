@@ -105,10 +105,12 @@ function ResultsPage() {
                 
 
 
+
                 return (
                   <div key={index} className="condition-card">
                     <div className="condition-info">
                       <h3>{diseaseName}</h3>
+
 
                     </div>
                     <div className="progress-circle" style={{'--progress': result.percentage}}>
@@ -121,6 +123,7 @@ function ResultsPage() {
               <div className="condition-card">
                 <div className="condition-info">
                   <h3>No Conditions Detected</h3>
+
 
                 </div>
                 <div className="progress-circle" style={{'--progress': 0}}>
