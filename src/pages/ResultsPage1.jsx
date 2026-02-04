@@ -49,192 +49,7 @@ function ResultsPage() {
     );
   }
 
-  const sortedPredictionsRaw = Object.entries(predictions.predictions)
-    .map(([condition, probability]) => {
-      const desc = CONDITION_DESCRIPTIONS[condition] || {};
-      return {
-        condition,
-        probability,
-        name: desc.name || condition,
-        description: desc.description,
-        description1: desc.description1,
-        treatment: desc.treatment || "Unknown",
-        recommendations: desc.recommendations || []
-      };
-    })
-    .sort((a, b) => b.probability - a.probability)
-    .slice(0, 1);
-
-  const topPrediction = sortedPredictionsRaw[0];
-  const urgencyLevel =
-    topPrediction.probability > 0.7 && (topPrediction.condition === 'MEL' || topPrediction.condition === 'SCC')
-      ? 'high'
-      : topPrediction.probability > 0.5
-        ? 'moderate'
-        : 'low';
-
-  const handleDownloadReport = () => {
-    const reportContent = `
-      <html>
-        <head>
-          <title>SkinSight AI Analysis Report</title>
-          <style>
-            body { 
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-              padding: 40px; 
-              color: #333;
-              line-height: 1.6;
-            }
-            .header {
-              text-align: center;
-              border-bottom: 2px solid #1e3a8a;
-              margin-bottom: 30px;
-              padding-bottom: 20px;
-            }
-            .header h1 { color: #1e3a8a; margin: 0; }
-            .meta-info {
-              display: flex;
-              justify-content: space-between;
-              margin-bottom: 30px;
-              font-size: 0.9rem;
-              color: #666;
-            }
-            .section { margin-bottom: 40px; }
-            .section-title {
-              font-size: 1.2rem;
-              font-weight: bold;
-              color: #1e3a8a;
-              border-bottom: 1px solid #e5e7eb;
-              margin-bottom: 15px;
-              padding-bottom: 5px;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 20px;
-            }
-            th, td {
-              text-align: left;
-              padding: 12px;
-              border: 1px solid #e5e7eb;
-            }
-            th {
-              background-color: #f8fafc;
-              color: #1e3a8a;
-              font-weight: 600;
-            }
-            .image-container {
-              text-align: center;
-              margin-bottom: 30px;
-            }
-            .image-container img {
-              max-width: 400px;
-              border-radius: 8px;
-              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            }
-            .recommendation-item {
-              margin-bottom: 8px;
-              padding-left: 20px;
-              position: relative;
-            }
-            .recommendation-item::before {
-              content: "•";
-              position: absolute;
-              left: 0;
-              color: #1e3a8a;
-              font-weight: bold;
-            }
-            .footer {
-              margin-top: 50px;
-              font-size: 0.8rem;
-              color: #999;
-              text-align: center;
-              border-top: 1px solid #eee;
-              padding-top: 20px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>SkinSight AI Analysis Report</h1>
-          </div>
-
-          <div class="meta-info">
-            <span>Report ID: SS-${Math.floor(Math.random() * 1000000)}</span>
-            <span>Generated: ${new Date().toLocaleString()}</span>
-          </div>
-
-          <div class="section">
-            <div class="section-title">Analysis Image</div>
-            <div class="image-container">
-              <img src="${capturedImage}" alt="Skin Analysis Image"/>
-            </div>
-          </div>
-
-          <div class="section">
-            <div class="section-title">Top Detected Conditions</div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Condition</th>
-                  <th>Confidence Percentage</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${allDiseaseResults.slice(0, 4).map(res => `
-                  <tr>
-                    <td>${res.disease.replace(/_/g, ' ')}</td>
-                    <td>${res.percentage}%</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-
-          <div class="section">
-            <div class="section-title">Self-Assessment Data</div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Question</th>
-                  <th>User Answer</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${assessmentAnswers.map(item => `
-                  <tr>
-                    <td>${item.question}</td>
-                    <td>${item.answer}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-
-          <div class="section">
-            <div class="section-title">Clinical Recommendations</div>
-            <div class="recommendations">
-              ${topPrediction.recommendations.map(rec => `
-                <div class="recommendation-item">${typeof rec === "string" ? rec : rec.text}</div>
-              `).join('')}
-            </div>
-          </div>
-
-          <div class="footer">
-            <p>This report is generated by AI for informational purposes only and does not substitute professional medical advice.</p>
-            <p>© 2025 SkinSight AI. All rights reserved.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
-  // Calculate urgency level based on prediction
-  const urgencyLevel = calculateUrgencyLevel(topPrediction);
-
-  const handleDownloadReport = () => {
-    generateAndDownloadReport(capturedImage, urgencyLevel);
-  };
+  const topPrediction = getTopPredictionWithDetails(predictions);
 
   const allDiseaseResults = getAllCategoriesResults({
     isAdaptive,
@@ -245,6 +60,12 @@ function ResultsPage() {
 
   // Get assessment answers for display
   const assessmentAnswers = formatAssessmentAnswers(assessmentData);
+
+  const urgencyLevel = calculateUrgencyLevel(topPrediction);
+
+  const handleDownloadReport = () => {
+    generateAndDownloadReport(capturedImage, urgencyLevel);
+  };
 
   return (
     <div className="results-container">
@@ -276,7 +97,7 @@ function ResultsPage() {
                 const conditionInfo = findConditionDescription(result.disease);
                 
                 // Get disease name - use info.name if available, otherwise format the disease key
-                const diseaseName = info?.name || 
+                const diseaseName = conditionInfo?.name || 
                                   result.disease.split('_').map(word => 
                                     word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                                   ).join(' ') ||
