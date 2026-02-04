@@ -36,7 +36,6 @@ const CONDITION_DESCRIPTIONS = {
   "Psoriasis": {
     name: "Psoriasis",
     description: "Psoriasis causes thick, pink, scaly plaques on areas like the elbows, knees, scalp, and back. It often flares and improves over time. Some patients develop psoriatic arthritis, which affects the joints, and nail psoriasis, which causes nail discoloration and pitting. The exact cause is unknown but tends to run in families. A variant called palmo-plantar psoriasis affects the palms and soles, sometimes leading to severe nail damage and may be triggered by certain treatments for psoriasis or Crohn’s disease.",
-    treatment: "moderate",
     causes: "Psoriasis is caused by an overactive immune system that speeds up skin cell growth. It often runs in families and can be triggered by stress, infections, cold weather, skin injury, certain medications, smoking, or alcohol.",
 
   },
@@ -57,7 +56,6 @@ const CONDITION_DESCRIPTIONS = {
   "Bullous Disease": {
     name: "Bullous Disease",
     description: "Painful blisters that appear when the body attacks the skin—can be serious and need long-term care.",
-    treatment: "moderate",
     causes: " ",
 
   },

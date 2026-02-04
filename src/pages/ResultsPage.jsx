@@ -1,0 +1,659 @@
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  FaChartBar,
+  FaListUl,
+  FaDownload,
+  FaHome,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaBandAid,
+  FaClipboardList,
+  FaUser
+} from 'react-icons/fa';
+import './css/ResultsPage.css';
+import React, { useState } from 'react';
+import { handleAnswer } from "./SelfAssessment";
+import {
+  DISEASES,
+  calculateWeightedResults,
+} from './SelfAssessment';
+import { CONFIG } from '../config';
+
+const CONDITION_DESCRIPTIONS = {
+  "Acne": {
+    name: "Acne",
+    description: "Acne appears as pimples and blackheads on the face, back, or chest, while rosacea shows as redness and small bumps on the cheeks and nose.",
+    recommendations: ["Keep your face clean, avoid scrubbing and tiggers. try over-the-counter creams. For stubborn cases, see a doctor for prescription creams or pills.", "Be gentle with your skin, avoid your triggers, and ask about creams or pills to calm the redness and swelling.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions": {
+    name: "Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions",
+    description: "Rough spots or growths from too much sun that could turn into skin cancer if ignored.",
+    recommendations: ["Don’t ignore these—get them checked. Your doctor may freeze, scrape, or remove them. Sunscreen is your best friend.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Atopic Dermatitis": {
+    name: "Atopic Dermatitis",
+    description: "Itchy, dry, or red patches—often from allergies or skin that’s sensitive to irritants.",
+    recommendations: ["Moisturize often, avoid triggers like soaps or fabrics, and use gentle creams to reduce itching.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Bullous Disease": {
+    name: "Bullous Disease",
+    description: "Painful blisters that appear when the body attacks the skin—can be serious and need long-term care.",
+    recommendations: ["Don’t pop the blisters. See a specialist for proper diagnosis. Treatment often includes steroids or immune-calming meds.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Cellulitis Impetigo and other Bacterial Infections": {
+    name: "Cellulitis Impetigo and other Bacterial Infections",
+    description: "Red, swollen, or crusty areas on the skin from bacteria. Can spread quickly.",
+    recommendations: ["Don’t wait—these usually need antibiotics. Keep the area clean and avoid picking.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Eczema": {
+    name: "Eczema",
+    description: "Itchy, dry, or red patches—often from allergies or skin that’s sensitive to irritants.",
+    recommendations: ["Moisturize often, avoid triggers like soaps or fabrics, and use gentle creams to reduce itching.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Exanthems and Drug Eruptions": {
+    name: "Exanthems and Drug Eruptions",
+    description: "Widespread rashes from infections or medications—may come with fever or itching.",
+    recommendations: ["Stop any new meds and see a doctor. Mild cases get better with rest and antihistamines. Severe ones need urgent care.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Hair Loss Alopecia and other Hair Diseases": {
+    name: "Hair Loss Alopecia and other Hair Diseases",
+    description: "Hair falls out in patches or thins over time due to stress, illness, or immune causes.",
+    recommendations: ["Some hair loss gets better on its own. Treatments like minoxidil or steroid injections can help. Talk to your doctor early.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Herpes HPV and other STDs": {
+    name: "Herpes HPV and other STDs",
+    description: "Painful blisters or warts on or near the genitals, mouth, or anus caused by viruses.",
+    recommendations: ["Practice safe sex, get tested, and ask your doctor about antiviral medications or wart treatments.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Light Diseases and Disorders of Pigmentation": {
+    name: "Light Diseases and Disorders of Pigmentation",
+    description: "Uneven skin color—like light or dark patches—from pigment loss or excess.",
+    recommendations: ["Protect your skin from the sun and try prescribed creams. Some people may benefit from lasers or light therapy.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Lupus and other Connective Tissue diseases": {
+    name: "Lupus and other Connective Tissue diseases",
+    description: "Autoimmune diseases that affect skin and sometimes internal organs—may show as rashes, hair loss, or ulcers.",
+    recommendations: ["Wear sunscreen every day. See a doctor regularly to manage flares and protect organs with medication if needed.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Melanoma Skin Cancer Nevi and Moles": {
+    name: "Melanoma Skin Cancer Nevi and Moles",
+    description: "Spots or moles that change in shape, size, or color and could be cancer.",
+    recommendations: ["Get your moles checked regularly. If one looks different, see a doctor. Early removal saves lives.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Nail Fungus and other Nail Disease": {
+    name: "Nail Fungus and other Nail Disease",
+    description: "Thick, yellowed, or brittle nails—usually caused by fungal infections.",
+    recommendations: ["Keep nails trimmed and dry. OTC creams may help, but pills from your doctor work best.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Poison Ivy and other Contact Dermatitis": {
+    name: "Poison Ivy and other Contact Dermatitis",
+    description: "Itchy, red rash from touching plants, soaps, or metals your skin doesn’t like.",
+    recommendations: ["Avoid what caused it, apply soothing creams, and don’t scratch. For bad cases, a short course of steroids may help.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Psoriasis pictures Lichen Planus and related diseases": {
+    name: "Psoriasis pictures Lichen Planus and related diseases",
+    description: "Red, scaly patches on the skin that come and go—often on the scalp, elbows, or knees.",
+    recommendations: ["Moisturize, manage stress, and try prescription creams or light therapy. Severe types may need injectable medications.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Scabies Lyme Disease and other Infestations and Bites": {
+    name: "Scabies Lyme Disease and other Infestations and Bites",
+    description: "Description for Scabies Lyme Disease and other Infestations and Bites.",
+    recommendations: ["Consult a dermatologist for personalized advice.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Seborrheic Keratoses and other Benign Tumors": {
+    name: "Infectious Skin Disease",
+    description: "Harmless brown or black stuck-on growths—common as people age.",
+    recommendations: ["No treatment is needed unless they bother you. A doctor can freeze or shave them off if needed.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Systemic Disease": {
+    name: "Systemic Disease",
+    description: "Diseases in other parts of the body (like the liver or thyroid) that show up as rashes or skin changes.",
+    recommendations: ["Treating the main condition usually helps the skin. Don’t ignore new skin changes—tell your doctor.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Tinea Ringworm Candidiasis and other Fungal Infections": {
+    name: "Tinea Ringworm Candidiasis and other Fungal Infections",
+    description: "Itchy, red, ring-shaped rashes or white patches from fungal infections.",
+    recommendations: ["Use antifungal creams and keep skin dry. See a doctor if it doesn’t go away or keeps coming back.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Urticaria Hives": {
+    name: "Urticaria Hives",
+    description: "Sudden itchy welts or swelling from allergies, heat, or unknown causes.",
+    recommendations: ["Try antihistamines and figure out your triggers. If it lasts longer than 6 weeks, see a doctor.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Vascular Tumors": {
+    name: "Vascular Tumors",
+    description: "Growths made of blood vessels, like red “strawberry” marks in babies.",
+    recommendations: ["Most shrink over time. If they bleed, grow fast, or block vision, see a specialist.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Vasculitis": {
+    name: "Vasculitis",
+    description: "Inflamed blood vessels cause purple spots, ulcers, or painful patches.",
+    recommendations: ["Don’t ignore these—they may signal something serious. Doctors may give steroids or other immune medications.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  },
+  "Warts Molluscum and other Viral Infections": {
+    name: "Warts Molluscum and other Viral Infections",
+    description: "Bumps on the skin from viruses—can spread by touch.",
+    recommendations: ["Leave them alone or try over-the-counter treatments. Doctors can freeze or treat them if they don’t go away.",
+      {
+        text: "Consult a dermatologist for personalized advice.",
+        link: CONFIG.BOOKING_URL
+      }
+    ]
+  }
+};
+
+function ResultsPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [answers, setAnswers] = useState({});
+
+  const handleOptionSelect = (questionId, option) => {
+    handleAnswer(setAnswers, questionId, option);
+  };
+
+  const predictions = location.state?.predictions;
+  const capturedImage = location.state?.capturedImage;
+  const assessmentData = location.state?.answers;
+  const diseaseScores = location.state?.diseaseScores;
+
+  const assessmentQuestions = [
+    { id: 1, text: "Does it feel itchy?" },
+    { id: 2, text: "Does it hurt or feel sore when you touch it?" },
+    { id: 3, text: "Does it look like a ring or circle on the skin?" },
+    { id: 4, text: "Have you noticed the spot getting darker, bigger, or changing shape?" },
+    { id: 5, text: "Do you see small blisters filled with clear fluid?" },
+    { id: 6, text: "Does the skin feel rough, scaly, or flaky?" },
+    { id: 7, text: "Does the spot look uneven in shape or have more than one color?" },
+    { id: 8, text: "Does it look like a small bump that sticks up from the skin?" },
+    { id: 9, text: "Does it look smooth and shiny, or as if it's sitting on top of the skin like a sticker?" }
+  ];
+
+  if (!predictions || !capturedImage) {
+    return (
+      <div className="results-container">
+        <div className="results-content">
+          <div className="error-state">
+            <FaExclamationTriangle className="error-icon" />
+            <h2>Error</h2>
+            <p>No analysis results available.</p>
+            <button className="action-btn secondary-btn" onClick={() => navigate('/')}>
+              <FaHome /> Return Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const sortedPredictionsRaw = Object.entries(predictions.predictions)
+    .map(([condition, probability]) => {
+      const desc = CONDITION_DESCRIPTIONS[condition] || {};
+      return {
+        condition,
+        probability,
+        name: desc.name || condition,
+        description: desc.description,
+        description1: desc.description1,
+        recommendations: desc.recommendations || []
+      };
+    })
+    .sort((a, b) => b.probability - a.probability)
+    .slice(0, 1);
+
+  const totalProb = sortedPredictionsRaw.reduce((sum, pred) => sum + pred.probability, 0);
+  const sortedPredictions = totalProb > 0
+    ? sortedPredictionsRaw.map(pred => ({
+      ...pred,
+      originalProbability: pred.probability,
+      probability: pred.probability / totalProb
+    }))
+    : sortedPredictionsRaw.map(pred => ({
+      ...pred,
+      originalProbability: pred.probability
+    }));
+
+  const topPrediction = sortedPredictions[0];
+  const urgencyLevel =
+    topPrediction.probability > 0.7 && (topPrediction.condition === 'MEL' || topPrediction.condition === 'SCC')
+      ? 'high'
+      : topPrediction.probability > 0.5
+        ? 'moderate'
+        : 'low';
+
+  const handleDownloadReport = () => {
+    const reportContent = `
+      <html>
+        <head>
+          <title>SkinSight AI Analysis Report</title>
+          <style>
+            body { 
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+              padding: 40px; 
+              color: #333;
+              line-height: 1.6;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 2px solid #1e3a8a;
+              margin-bottom: 30px;
+              padding-bottom: 20px;
+            }
+            .header h1 { color: #1e3a8a; margin: 0; }
+            .meta-info {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 30px;
+              font-size: 0.9rem;
+              color: #666;
+            }
+            .section { margin-bottom: 40px; }
+            .section-title {
+              font-size: 1.2rem;
+              font-weight: bold;
+              color: #1e3a8a;
+              border-bottom: 1px solid #e5e7eb;
+              margin-bottom: 15px;
+              padding-bottom: 5px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+            th, td {
+              text-align: left;
+              padding: 12px;
+              border: 1px solid #e5e7eb;
+            }
+            th {
+              background-color: #f8fafc;
+              color: #1e3a8a;
+              font-weight: 600;
+            }
+            .image-container {
+              text-align: center;
+              margin-bottom: 30px;
+            }
+            .image-container img {
+              max-width: 400px;
+              border-radius: 8px;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            .recommendation-item {
+              margin-bottom: 8px;
+              padding-left: 20px;
+              position: relative;
+            }
+            .recommendation-item::before {
+              content: "•";
+              position: absolute;
+              left: 0;
+              color: #1e3a8a;
+              font-weight: bold;
+            }
+            .footer {
+              margin-top: 50px;
+              font-size: 0.8rem;
+              color: #999;
+              text-align: center;
+              border-top: 1px solid #eee;
+              padding-top: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>SkinSight AI Analysis Report</h1>
+          </div>
+
+          <div class="meta-info">
+            <span>Report ID: SS-${Math.floor(Math.random() * 1000000)}</span>
+            <span>Generated: ${new Date().toLocaleString()}</span>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Analysis Image</div>
+            <div class="image-container">
+              <img src="${capturedImage}" alt="Skin Analysis Image"/>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Top Detected Conditions</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Condition</th>
+                  <th>Confidence Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${sortedPredictions.map(pred => `
+                  <tr>
+                    <td>${pred.name}</td>
+                    <td>${(pred.probability * 100).toFixed(1)}%</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Clinical Recommendations</div>
+            <div class="recommendations">
+              ${topPrediction.recommendations.map(rec => `
+                <div class="recommendation-item">${typeof rec === "string" ? rec : rec.text}</div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>This report is generated by AI for informational purposes only and does not substitute professional medical advice.</p>
+            <p>© 2025 SkinSight AI. All rights reserved.</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const blob = new Blob([reportContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `skin-analysis-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const diseaseCategory = () => {
+    let formatted = topPrediction.condition;
+
+    // Use weighted results if assessment data is available
+    const weightedCategories = calculateWeightedResults(assessmentData, topPrediction.condition);
+
+    // Determine which category to display based on top prediction
+    let targetCategory = 'INFLAMMATORY'; // default
+    if (topPrediction.condition && topPrediction.condition.toLowerCase().includes('infectious')) {
+      targetCategory = 'INFECTIOUS';
+    } else if (topPrediction.condition && topPrediction.condition.toLowerCase().includes('autoimmune')) {
+      targetCategory = 'AUTOIMMUNE';
+    } else if (topPrediction.condition && topPrediction.condition.toLowerCase().includes('benign')) {
+      targetCategory = 'BENIGN_GROWTH';
+    } else if (topPrediction.condition && topPrediction.condition.toLowerCase().includes('cancer')) {
+      targetCategory = 'SKIN_CANCER';
+    } else if (topPrediction.condition && topPrediction.condition.toLowerCase().includes('pigmentary')) {
+      targetCategory = 'PIGMENTARY';
+    } else if (topPrediction.condition && topPrediction.condition.toLowerCase().includes('environmental')) {
+      targetCategory = 'ENVIRONMENTAL';
+    }
+
+    // Get the weighted category data
+    const categoryData = weightedCategories[targetCategory];
+
+    // Get top 4 diseases by score (before normalization)
+    const top4 = Object.entries(categoryData)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4);
+
+    // Calculate total of just the top 4 scores
+    const top4Total = top4.reduce((sum, [, score]) => sum + score, 0);
+
+    // Normalize only the top 4 to sum to 100%
+    const normalizedTop4 = top4.map(([disease, score]) => {
+      const percentage = top4Total > 0 ? (score / top4Total) * 100 : 0;
+      return [disease, Number(percentage.toFixed(2))];
+    });
+
+    return normalizedTop4;
+  };
+
+  return (
+    <div className="results-wrapper">
+      {/* Header */}
+      <nav className="navbar">
+        <div className="nav-container">
+          <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>SkinSight AI</div>
+
+          <div className="nav-links">
+            <a href="/#home" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Home</a>
+            <a href="/#about" onClick={(e) => { e.preventDefault(); navigate('/'); setTimeout(() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>About</a>
+            <a href="/#how-to-use" onClick={(e) => { e.preventDefault(); navigate('/'); setTimeout(() => document.getElementById('how-to-use')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>How To Use</a>
+          </div>
+
+          <button className="btn-contact" onClick={() => { navigate('/'); setTimeout(() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>
+            Contact Us
+          </button>
+        </div>
+      </nav>
+
+      <div className="results-container">
+        <div className="results-content">
+          <div className="results-header">
+            <h1>Analysis Report</h1>
+            <p>AI-Powered Dermatological Analysis</p>
+          </div>
+
+          <div className="results-layout">
+            {/* Top Section - Selected Conditions as Circles */}
+            <div className="result-section full-width">
+              <h2 className="section-title"><FaChartBar /> Selected Conditions</h2>
+              <div className="conditions-circles-grid">
+                {diseaseCategory().map(([disease, value], index) => {
+                  const key = disease.replace(/_/g, ' ');
+                  const info = CONDITION_DESCRIPTIONS[key];
+                  return (
+                    <div key={index} className="condition-circle-item">
+                      <div className="progress-circle" style={{ '--progress': value }}>
+                        <span className="progress-value">{value}%</span>
+                      </div>
+                      <span className="condition-label">{info?.name || key}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* LEFT - Analyzed Image */}
+            <div className="result-section">
+              <h2 className="section-title"><FaBandAid /> Analyzed Image</h2>
+              <div className="analyzed-image-frame">
+                <img src={capturedImage} alt="Analyzed condition" />
+                <div className="image-overlay">
+                  <div className={`urgency-badge ${urgencyLevel}`}>
+                    {urgencyLevel.toUpperCase()} RISK
+                  </div>
+                </div>
+              </div>
+              <div className={`urgency-message ${urgencyLevel}`}>
+                {urgencyLevel === 'high'
+                  ? 'Urgent medical attention recommended'
+                  : urgencyLevel === 'moderate'
+                    ? 'Medical consultation is advised'
+                    : 'Regular monitoring recommended'}
+              </div>
+            </div>
+
+            {/* RIGHT - Recommendations */}
+            <div className="result-section">
+              <h2 className="section-title"><FaListUl /> Recommendations</h2>
+              <div className="recommendations-list">
+                {topPrediction.recommendations.map((rec, index) => (
+                  <div key={index} className="recommendation-card-alt">
+                    <FaCheckCircle className="check-icon" />
+                    <div className="rec-text">
+                      {typeof rec === "string" ? (
+                        <p>{rec}</p>
+                      ) : (
+                        <a href={rec.link} target="_blank" rel="noopener noreferrer">{rec.text}</a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom Section - Assessment Answers as Grid */}
+            {assessmentData && Object.keys(assessmentData).length > 0 && (
+              <div className="result-section full-width">
+                <h2 className="section-title"><FaClipboardList /> Self-Assessment Answers</h2>
+                <div className="assessment-grid-alt">
+                  {assessmentQuestions.map((question) => (
+                    <div key={question.id} className="assessment-bubble">
+                      <div className="assessment-label">{question.text}</div>
+                      <div className="assessment-val">{assessmentData[question.id] || 'N/A'}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="results-actions">
+            <button className="btn-premium btn-primary" onClick={handleDownloadReport}>
+              <FaDownload /> Download Report
+            </button>
+            <button className="btn-premium btn-outline" onClick={() => navigate('/')}>
+              <FaHome /> Return Home
+            </button>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="footer">
+          <div className="container">
+            <div className="footer-content">
+              <div className="footer-links">
+                <a href="/#about" onClick={(e) => { e.preventDefault(); navigate('/'); setTimeout(() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>About</a>
+                <a href="/#how-to-use" onClick={(e) => { e.preventDefault(); navigate('/'); setTimeout(() => document.getElementById('how-to-use')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>How To Use</a>
+                <button className="btn-footer-contact" onClick={() => { navigate('/'); setTimeout(() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>
+                  Contact Us
+                </button>
+              </div>
+              <div className="footer-copyright">
+                <span className="copyright-icon">👤</span>
+                <span>© SkinSight AI 2025</span>
+              </div>
+              <div className="footer-rights">
+                <span>All Rights Reserved</span>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+export default ResultsPage;
