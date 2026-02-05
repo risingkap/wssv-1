@@ -22,6 +22,7 @@ import { calculateUrgencyLevel } from '../utils/urgencyCalculator';
 import { getAllCategoriesResults } from '../utils/diseaseScoring';
 import { generateAndDownloadReport } from '../utils/reportGenerator';
 import { formatAssessmentAnswers } from '../utils/assessmentFormatter';
+import { DISEASES } from '../data/diseases';
 
 function ResultsPage() {
   const navigate = useNavigate();
@@ -56,7 +57,83 @@ function ResultsPage() {
     diseaseScores,
     assessmentData,
     topCondition: topPrediction?.condition
-  }).filter(result => result.percentage > 0); // Filter out negative or zero percentages
+  }).filter(result => result.percentage > 0);
+
+  // Determine how many results to show (3 or 4) and renormalize so they sum to 100
+  let displayResults = allDiseaseResults.slice(0, 4);
+  if (displayResults.length > 0) {
+    const topPct = displayResults[0].percentage || 0;
+    const targetCount = topPct > 40 ? Math.min(3, displayResults.length) : Math.min(4, displayResults.length);
+    displayResults = displayResults.slice(0, targetCount);
+
+    const rawTotal = displayResults.reduce((sum, r) => sum + r.percentage, 0);
+    if (rawTotal > 0) {
+      const recalculated = displayResults.map((item, index) => {
+        if (index === displayResults.length - 1) {
+          const sumFirst = displayResults
+            .slice(0, -1)
+            .reduce(
+              (sum, r) => sum + Math.round((r.percentage / rawTotal) * 100),
+              0
+            );
+          return {
+            ...item,
+            percentage: 100 - sumFirst
+          };
+        }
+        return {
+          ...item,
+          percentage: Math.round((item.percentage / rawTotal) * 100)
+        };
+      });
+      displayResults = recalculated;
+
+      // Break any remaining percentage ties using attribute-based bias
+      const percentageGroups = displayResults.reduce((acc, item, index) => {
+        const key = item.percentage;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(index);
+        return acc;
+      }, {});
+
+      Object.values(percentageGroups).forEach(indices => {
+        if (indices.length <= 1) return;
+
+        const enriched = indices
+          .map(idx => {
+            const item = displayResults[idx];
+            const attrs =
+              (item.category &&
+                DISEASES[item.category] &&
+                DISEASES[item.category][item.disease] &&
+                DISEASES[item.category][item.disease].attributes) ||
+              [];
+            const zeroCount = attrs.filter(v => v === 0).length;
+            return { idx, zeroCount };
+          })
+          .sort((a, b) => a.zeroCount - b.zeroCount || a.idx - b.idx);
+
+        for (let i = 1; i < enriched.length; i++) {
+          const downIdx = enriched[i].idx;
+          const upIdx = enriched[0].idx;
+
+          const downItem = displayResults[downIdx];
+          const upItem = displayResults[upIdx];
+
+          const delta = 1;
+
+          displayResults[downIdx] = {
+            ...downItem,
+            percentage: Math.max(0, downItem.percentage - delta)
+          };
+          displayResults[upIdx] = {
+            ...upItem,
+            percentage: upItem.percentage + delta
+          };
+        }
+      });
+    }
+  }
 
   // Get assessment answers for display
   const assessmentAnswers = formatAssessmentAnswers(assessmentData);
@@ -91,8 +168,8 @@ function ResultsPage() {
         <div className="detected-conditions-section">
           <h2 className="section-title">Detected Conditions</h2>
           <div className="conditions-grid">
-            {allDiseaseResults.length > 0 ? (
-              allDiseaseResults.slice(0, 3).map((result, index) => {
+            {displayResults.length > 0 ? (
+              displayResults.map((result, index) => {
                 // Get condition information
                 const conditionInfo = findConditionDescription(result.disease);
                 
@@ -102,10 +179,6 @@ function ResultsPage() {
                                     word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                                   ).join(' ') ||
                                   result.disease.replace(/_/g, ' ');
-                
-
-
-
                 return (
                   <div key={index} className="condition-card">
                     <div className="condition-info">
