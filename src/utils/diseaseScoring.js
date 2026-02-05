@@ -1,15 +1,10 @@
-/**
- * Disease scoring and aggregation utilities
- * Handles calculation and normalization of disease scores
- */
-
-import { DISPLAY_THRESHOLDS, CATEGORY_NAMES } from './resultPageConfig';
+ import { DISPLAY_THRESHOLDS, CATEGORY_NAMES } from './resultPageConfig';
 import { getTargetCategory, calculateWeightedResults } from '../pages/SelfAssessment';
 
 /**
  * Normalize percentages to ensure sum equals 100%
- * @param {Array} items - Items with percentage property
- * @returns {Array} - Items with adjusted percentages
+ * @param {Array} items
+ * @returns {Array}
  */
 function normalizePercentages(items) {
   if (items.length === 0) return items;
@@ -38,9 +33,11 @@ function processAdaptiveScores(diseaseScores, topCondition) {
   const targetCategory = getTargetCategory(topCondition);
   const categoryThreshold = DISPLAY_THRESHOLDS[targetCategory] || DISPLAY_THRESHOLDS.DEFAULT;
   
+  // Clamp any negative scores to zero before processing and take top 4
   const top3 = Object.entries(diseaseScores)
+    .map(([disease, score]) => [disease, Math.max(0, score)])
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
+    .slice(0, 4);
   
   const totalScore = top3.reduce((sum, [, score]) => sum + score, 0);
   
@@ -77,9 +74,11 @@ function processAssessmentScores(assessmentData, topCondition) {
       return;
     }
     
+    // Clamp any negative scores to zero before processing and take top 4
     const top3 = Object.entries(categoryData)
+      .map(([disease, score]) => [disease, Math.max(0, score)])
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 3);
+      .slice(0, 4);
     
     const totalScore = top3.reduce((sum, [, score]) => sum + score, 0);
     
@@ -99,12 +98,12 @@ function processAssessmentScores(assessmentData, topCondition) {
 
 /**
  * Get all disease category results from available data
- * @param {Object} params - Parameters object
- * @param {boolean} params.isAdaptive - Using adaptive assessment
- * @param {Object} params.diseaseScores - Disease scores from adaptive
- * @param {Object} params.assessmentData - Assessment answers
- * @param {string} params.topCondition - Top predicted condition
- * @returns {Array} - Sorted disease results by percentage
+ * @param {Object} params
+ * @param {boolean} params.isAdaptive
+ * @param {Object} params.diseaseScores
+ * @param {Object} params.assessmentData
+ * @param {string} params.topCondition
+ * @returns {Array}
  */
 export function getAllCategoriesResults(params) {
   const { isAdaptive, diseaseScores, assessmentData, topCondition } = params;

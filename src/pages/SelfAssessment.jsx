@@ -109,8 +109,7 @@ const calculateWeightedResults = (assessmentAnswers, topPredictionCondition) => 
         }
       }
     });
-
-    results[diseaseName] = Math.max(-10, totalWeight);
+    results[diseaseName] = Math.max(0, totalWeight);
   });
 
   return { [targetCategoryKey]: results };
@@ -123,7 +122,7 @@ const checkDiseaseThreshold = (scores, category = 'DEFAULT') => {
 
   const top3 = Object.entries(scores)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
+    .slice(0, 4);
 
   const total = top3.reduce((sum, [, score]) => sum + score, 0);
   const filteredTop3 = top3.filter(([, score]) => score > 0);
@@ -204,7 +203,8 @@ function SelfAssessment() {
         }
       });
 
-      allScores[diseaseName] = Math.max(-10, totalWeight);
+      // Prevent negative base scores so downstream percentages stay non-negative
+      allScores[diseaseName] = Math.max(0, totalWeight);
     });
 
     return allScores;
