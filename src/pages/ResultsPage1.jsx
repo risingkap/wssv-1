@@ -30,6 +30,7 @@ function ResultsPage() {
   const predictions = location.state?.predictions;
   const capturedImage = location.state?.capturedImage;
   const assessmentData = location.state?.answers;
+  const assessmentQuestions = location.state?.assessmentQuestions;
   const diseaseScores = location.state?.diseaseScores;
   const isAdaptive = location.state?.adaptive || false;
 
@@ -135,8 +136,8 @@ function ResultsPage() {
     }
   }
 
-  // Get assessment answers for display
-  const assessmentAnswers = formatAssessmentAnswers(assessmentData);
+  // Get assessment answers for display (use same questions as SelfAssessment when available)
+  const assessmentAnswers = formatAssessmentAnswers(assessmentData, assessmentQuestions);
 
   const urgencyLevel = calculateUrgencyLevel(topPrediction);
 

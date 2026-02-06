@@ -255,7 +255,8 @@ function SelfAssessment() {
           answers,
           diseaseScores: preCalculatedScores || diseaseScores,
           adaptive: true,
-          assessmentCategory: currentCategory
+          assessmentCategory: currentCategory,
+          assessmentQuestions: questions
         }
       });
     }, randomDelay * 1000);
