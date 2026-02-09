@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faArrowLeft, faHome } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './css/SelfAssessment.css';
-import { DISEASES } from './ConditionAttr';
+import { DISEASES } from '../data/diseases';
 import { getPersonalizedQuestions } from './selfAssessmentQuestions'
 
 const handleAnswer = (setAnswers, questionId, answer) => {
@@ -121,17 +121,17 @@ const checkDiseaseThreshold = (scores, category = 'DEFAULT') => {
 
   const threshold = CATEGORY_THRESHOLDS[category] || CATEGORY_THRESHOLDS.DEFAULT;
 
-  const top4 = Object.entries(scores)
+  const top3 = Object.entries(scores)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 4);
+    .slice(0, 3);
 
-  const total = top4.reduce((sum, [, score]) => sum + score, 0);
-  const filteredTop4 = top4.filter(([, score]) => score > 0);
-  const filteredTotal = filteredTop4.reduce((sum, [, score]) => sum + score, 0);
+  const total = top3.reduce((sum, [, score]) => sum + score, 0);
+  const filteredTop3 = top3.filter(([, score]) => score > 0);
+  const filteredTotal = filteredTop3.reduce((sum, [, score]) => sum + score, 0);
 
-  if (filteredTop4.length === 0) return false;
+  if (filteredTop3.length === 0) return false;
 
-  for (const [disease, score] of filteredTop4) {
+  for (const [disease, score] of filteredTop3) {
     const percentage = (score / filteredTotal) * 100;
     if (percentage >= threshold) {
       return true;
