@@ -4,7 +4,8 @@ import { faArrowRight, faArrowLeft, faHome } from '@fortawesome/free-solid-svg-i
 import { useNavigate, useLocation } from 'react-router-dom';
 import './css/SelfAssessment.css';
 import { DISEASES } from './ConditionAttr';
-import { getPersonalizedQuestions } from './selfAssessmentQuestions'
+import { getPersonalizedQuestions, getTargetCategory } from './selfAssessmentQuestions'
+
 
 const handleAnswer = (setAnswers, questionId, answer) => {
   setAnswers(prev => ({
@@ -14,16 +15,10 @@ const handleAnswer = (setAnswers, questionId, answer) => {
 };
 
 const ASSESSMENT_MAPPING = {
-  1: 0,
-  2: 1,
-  3: 2,
-  4: 3,
-  5: 4,
-  6: 5,
-  7: 6,
-  8: 7,
-  9: 8
+  1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 
+  7: 6, 8: 7, 9: 8, 10: 9, 11: 10, 12: 11
 };
+
 
 const calculateArrayAverage = (arr) => {
   if (arr.length === 0) return 0;
@@ -69,6 +64,7 @@ const CATEGORY_THRESHOLDS = {
   'ENVIRONMENTAL': 30,
   'DEFAULT': 40
 };
+
 
 const calculateWeightedResults = (assessmentAnswers, topPredictionCondition) => {
   const results = {};
@@ -220,8 +216,10 @@ function SelfAssessment() {
 
       if (shouldProceed && !autoProceed) {
         setAutoProceed(true);
-        handleCompletion(scores);
+        // Wait a bit to show the user we detected high confidence
+        setTimeout(() => handleCompletion(scores), 1500);
       }
+
     }
   }, [answers, topPrediction]);
 
@@ -378,28 +376,8 @@ function SelfAssessment() {
 }
 
 
-const getTargetCategory = (topPredictionCondition) => {
-  if (!topPredictionCondition) return 'DEFAULT';
+// Local getTargetCategory removed, now using imported version
 
-  const condition = topPredictionCondition.toLowerCase();
-
-  const categories = {
-    INFLAMMATORY: ['acne', 'dermatitis'],
-    INFECTIOUS: ['molluscum contagiosum', 'ringworm', 'warts'],
-    AUTOIMMUNE: ['vitiligo'],
-    SKIN_CANCER: ['cancer', 'melanoma', 'carcinoma', 'keratosis'],
-    PIGMENTARY: ['pigmentary', 'melasma', 'hyperpigmentation', 'age spots'],
-    ENVIRONMENTAL: ['environmental', 'poison ivy', 'razor bumps', 'dry skin', 'sun damage']
-  };
-
-  for (const [category, keywords] of Object.entries(categories)) {
-    if (keywords.some(keyword => condition.includes(keyword))) {
-      return category;
-    }
-  }
-
-  return 'DEFAULT';
-};
 
 export default SelfAssessment;
 export {

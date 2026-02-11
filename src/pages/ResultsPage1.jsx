@@ -13,14 +13,20 @@ import {
 import './css/ResultsPage.css';
 
 import {
-  calculateWeightedResults,
-  getTargetCategory
+  calculateWeightedResults
 } from './SelfAssessment';
+
+import {
+  CATEGORY_QUESTIONS,
+  getTargetCategory,
+  getTopPrediction
+} from './selfAssessmentQuestions';
+
 
 import {
   CONDITION_DESCRIPTIONS
 } from './MedicalConditions';
-import { BASE_QUESTIONS } from './selfAssessmentQuestions';
+
 import { CONFIG } from '../config';
 
 const DISPLAY_THRESHOLDS = {
@@ -254,8 +260,10 @@ function ResultsPage() {
     const results = [];
     
     if (isAdaptive && diseaseScores && Object.keys(diseaseScores).length > 0) {
-      const targetCategory = getTargetCategory(topPrediction.condition);
+      const topPredString = getTopPrediction(predictions);
+      const targetCategory = getTargetCategory(topPredString);
       const categoryData = diseaseScores;
+
       const categoryThreshold = DISPLAY_THRESHOLDS[targetCategory] || DISPLAY_THRESHOLDS.DEFAULT;
       
       if (Object.keys(categoryData).length > 0) {
@@ -319,13 +327,21 @@ function ResultsPage() {
   // Get assessment answers for display
   const assessmentAnswers = assessmentData ? Object.entries(assessmentData).map(([key, value]) => {
     const questionId = parseInt(key);
-    const questionData = BASE_QUESTIONS[questionId];
+    
+    // Find question text across all categories
+    let questionText = `Question ${key}`;
+    Object.values(CATEGORY_QUESTIONS).forEach(categoryGroup => {
+      const found = categoryGroup.find(q => q.id === questionId);
+      if (found) questionText = found.text;
+    });
+
     return {
-      question: questionData?.text || `Question ${key}`,
+      question: questionText,
       answer: value,
       questionId: questionId
     };
   }) : [];
+
 
   return (
     <div className="results-container">
