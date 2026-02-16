@@ -3,65 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './css/SelfAssessment.css';
-import { DISEASES } from '../data/diseases';
-
-// Question definitions with their attribute mappings
-const QUESTIONS = [
-  {
-    id: 1,
-    text: "Does it feel itchy?",
-    options: ["Yes", "Not at all"],
-    attributeIndex: 0 // itchy
-  },
-  {
-    id: 2,
-    text: "Does it hurt or feel sore when you touch it?",
-    options: ["Yes", "Not at all"],
-    attributeIndex: 1 // painful
-  },
-  {
-    id: 3,
-    text: "Does it look like a ring or circle on the skin?",
-    options: ["Yes", "Not at all"],
-    attributeIndex: 2 // ring_shape
-  },
-  {
-    id: 4,
-    text: "Have you noticed the spot getting darker, bigger, or changing shape?",
-    options: ["Yes", "Not at all"],
-    attributeIndex: 3 // changing_shape
-  },
-  {
-    id: 5,
-    text: "Do you see small blisters filled with clear fluid?",
-    options: ["Yes", "Not at all"],
-    attributeIndex: 4 // blisters
-  },
-  {
-    id: 6,
-    text: "Does the skin feel rough, scaly, or flaky?",
-    options: ["Yes", "Not at all"],
-    attributeIndex: 5 // rough_scaly
-  },
-  {
-    id: 7,
-    text: "Does the spot look uneven in shape or have more than one color?",
-    options: ["Yes", "Not at all"],
-    attributeIndex: 6 // uneven_shape
-  },
-  {
-    id: 8,
-    text: "Does it look like a small bump that sticks up from the skin?",
-    options: ["Yes", "Not at all"],
-    attributeIndex: 7 // bump
-  },
-  {
-    id: 9,
-    text: "Does it look smooth and shiny, or as if it's sitting on top of the skin like a sticker?",
-    options: ["Yes", "Not at all"],
-    attributeIndex: 8 // shiny_sticker
-  }
-];
+import { DISEASES } from './ConditionAttr';
+import { CATEGORY_QUESTIONS, getTargetCategory, getTopPrediction } from './selfAssessmentQuestions';
 
 const CATEGORY_SCORE_MAP = {
   'INFLAMMATORY': DISEASES.INFLAMMATORY,
@@ -73,164 +16,33 @@ const CATEGORY_SCORE_MAP = {
   'ENVIRONMENTAL': DISEASES.ENVIRONMENTAL,
 };
 
-const getTargetCategory = (topPredictionCondition) => {
-  if (!topPredictionCondition) return null;
-
-  const condition = topPredictionCondition.toLowerCase().trim();
-
-  // Map actual prediction labels to categories
-  const categories = {
-    INFLAMMATORY: ['acne', 'dermatitis', 'atopic_dermatitis', 'contact_dermatitis', 'seborrheic_dermatitis', 'psoriasis', 'acne_keloidalis_nuchae'],
-    INFECTIOUS: ['molluscum contagiosum', 'molluscum_contagiosum', 'ringworm', 'warts', 'boils', 'cellulitis', 'folliculitis', 'impetigo', 'cold_sores', 'cold sores'],
-    AUTOIMMUNE: ['vitiligo', 'lupus', 'drug_induced_pigmentation', 'lichen'],
-    BENIGN_GROWTH: ['dermatofibroma', 'digital_mucous_cyst', 'cyst', 'lipoma', 'keloids'],
-    SKIN_CANCER: ['cancer', 'actinic', 'basal', 'squamous', 'melanoma', 'actinic_keratosis', 'basal_cell_cancer', 'squamous_cell_cancer'],
-    PIGMENTARY: ['pigmentary', 'melasma', 'hyperpigmentation', 'age_spots', 'age spots', 'dyschromia', 'varicose_veins'],
-    ENVIRONMENTAL: ['environmental', 'poison', 'razor', 'dry', 'sun', 'poison_ivy', 'razor_bumps', 'dry_skin', 'hyperhidrosis', 'sun_damage']
-  };
-
-  // First try exact match (handle underscores and spaces)
-  for (const [category, keywords] of Object.entries(categories)) {
-    // Check for exact matches first (accounting for spaces/underscores)
-    const normalizedCondition = condition.replace(/[_\s]/g, '');
-    const exactMatch = keywords.some(keyword => {
-      const normalizedKeyword = keyword.replace(/[_\s]/g, '');
-      return normalizedCondition === normalizedKeyword;
-    });
-
-    if (exactMatch) {
-      return category;
-    }
-
-    // Then try partial match
-    if (keywords.some(keyword => condition.includes(keyword) || keyword.includes(condition))) {
-      return category;
-    }
-  }
-
-  return null;
+const getActiveQuestions = (predictions) => {
+  const topPrediction = getTopPrediction(predictions);
+  const category = getTargetCategory(topPrediction);
+  const questionsList = CATEGORY_QUESTIONS[category] || CATEGORY_QUESTIONS.DEFAULT;
+  return questionsList.map((q, index) => ({
+    ...q,
+    attributeIndex: index
+  }));
 };
 
 const getAnswerValue = (answer) => {
   return answer.toLowerCase().includes('yes') ? 1 : 0;
 };
 
-// Calculate question importance based on variance in weights across diseases
-const calculateQuestionImportance = (categoryDiseases, attributeIndex, answeredQuestions) => {
-  if (!categoryDiseases) return 0;
-
-  const weights = [];
-  const attributes = [];
-
-  // Collect weights and attributes for this question across all diseases
-  Object.values(categoryDiseases).forEach(disease => {
-    if (disease.weights && disease.weights[attributeIndex] !== undefined) {
-      weights.push(disease.weights[attributeIndex]);
-      attributes.push(disease.attributes[attributeIndex]);
-    }
-  });
-
-  if (weights.length === 0) return 0;
-
-  // Calculate variance - higher variance means more differentiating power
-  const mean = weights.reduce((a, b) => a + b, 0) / weights.length;
-  const variance = weights.reduce((sum, w) => sum + Math.pow(w - mean, 2), 0) / weights.length;
-
-  // Boost importance if this question can eliminate many diseases
-  const nonZeroCount = weights.filter(w => w > 0).length;
-  const eliminationPower = (weights.length - nonZeroCount) / weights.length;
-
-  // Calculate how well this question helps narrow down remaining possibilities
-  const importance = variance * 0.7 + eliminationPower * 0.3;
-
-  return importance;
-};
-
-// Get next question using adaptive logic
-const getNextQuestion = (answeredQuestions, categoryDiseases, allQuestions) => {
-  if (!categoryDiseases) {
-    // If no category, return first unanswered question
-    return allQuestions.find(q => !answeredQuestions.has(q.id));
-  }
-
-  // Calculate current disease scores
-  const diseaseScores = calculateCurrentScores(answeredQuestions, categoryDiseases);
-
-  // Find unanswered questions
-  const unansweredQuestions = allQuestions.filter(q => !answeredQuestions.has(q.id));
-
-  if (unansweredQuestions.length === 0) return null;
-
-  // Score each unanswered question based on:
-  // 1. How well it differentiates between remaining likely diseases
-  // 2. Information gain (entropy reduction)
-  const questionScores = unansweredQuestions.map(question => {
-    const importance = calculateQuestionImportance(
-      categoryDiseases,
-      question.attributeIndex,
-      answeredQuestions
-    );
-
-    // Calculate information gain: how much this question would help narrow down
-    const infoGain = calculateInformationGain(
-      question,
-      answeredQuestions,
-      categoryDiseases,
-      diseaseScores
-    );
-
-    return {
-      question,
-      score: importance * 0.6 + infoGain * 0.4
-    };
-  });
-
-  // Sort by score and return the best question
-  questionScores.sort((a, b) => b.score - a.score);
-  return questionScores[0].question;
-};
-
-// Calculate information gain for a question
-const calculateInformationGain = (question, answeredQuestions, categoryDiseases, currentScores) => {
-  if (!categoryDiseases) return 0;
-
-  // Find top diseases based on current scores
-  const sortedDiseases = Object.entries(currentScores)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3); // Top 3 candidates
-
-  let totalGain = 0;
-
-  // For each possible answer (Yes/No), calculate how much it narrows down
-  question.options.forEach(option => {
-    const answerValue = getAnswerValue(option);
-    let matchCount = 0;
-
-    sortedDiseases.forEach(([diseaseName, score]) => {
-      const disease = categoryDiseases[diseaseName];
-      if (disease && disease.attributes[question.attributeIndex] === answerValue) {
-        matchCount++;
-      }
-    });
-
-    // Higher match count with top candidates = better question
-    totalGain += matchCount / sortedDiseases.length;
-  });
-
-  return totalGain / question.options.length;
-};
-
 // Calculate current disease scores based on answers
-const calculateCurrentScores = (answeredQuestions, categoryDiseases) => {
+const calculateCurrentScores = (answeredQuestions, categoryDiseases, activeQuestionsList) => {
   const scores = {};
   const INITIAL_SCORE = 5;
+
+  if (!categoryDiseases) return {};
 
   Object.entries(categoryDiseases).forEach(([diseaseName, diseaseData]) => {
     let totalWeight = INITIAL_SCORE;
     const { weights, attributes } = diseaseData;
 
     answeredQuestions.forEach((answer, questionId) => {
-      const question = QUESTIONS.find(q => q.id === questionId);
+      const question = activeQuestionsList.find(q => q.id === questionId);
       if (!question) return;
 
       const answerValue = getAnswerValue(answer);
@@ -240,11 +52,9 @@ const calculateCurrentScores = (answeredQuestions, categoryDiseases) => {
         const characteristicValue = attributes[attributeIndex] || 0;
 
         if (answerValue !== characteristicValue) {
-          // Wrong answer - penalize
           const avgWeight = weights.reduce((a, b) => a + b, 0) / weights.length;
           totalWeight -= avgWeight;
         } else {
-          // Correct answer - reward
           if (answerValue === 0 && characteristicValue === 0) {
             const avgWeight = weights.reduce((a, b) => a + b, 0) / weights.length;
             totalWeight += avgWeight;
@@ -261,26 +71,78 @@ const calculateCurrentScores = (answeredQuestions, categoryDiseases) => {
   return scores;
 };
 
-// Check if we have enough confidence to stop early
-const shouldStopEarly = (answeredQuestions, categoryDiseases, minQuestions = 3) => {
-  if (answeredQuestions.size < minQuestions) return false;
+// Calculate question importance based on variance in weights across diseases
+const calculateQuestionImportance = (categoryDiseases, attributeIndex) => {
+  if (!categoryDiseases) return 0;
+
+  const weights = [];
+  Object.values(categoryDiseases).forEach(disease => {
+    if (disease.weights && disease.weights[attributeIndex] !== undefined) {
+      weights.push(disease.weights[attributeIndex]);
+    }
+  });
+
+  if (weights.length === 0) return 0;
+
+  const mean = weights.reduce((a, b) => a + b, 0) / weights.length;
+  const variance = weights.reduce((sum, w) => sum + Math.pow(w - mean, 2), 0) / weights.length;
+  const nonZeroCount = weights.filter(w => w > 0).length;
+  const eliminationPower = (weights.length - nonZeroCount) / weights.length;
+
+  return variance * 0.7 + eliminationPower * 0.3;
+};
+
+// Calculate information gain for a question
+const calculateInformationGain = (question, categoryDiseases, currentScores) => {
+  if (!categoryDiseases || !currentScores) return 0;
+  const sortedDiseases = Object.entries(currentScores).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  let totalGain = 0;
+  question.options.forEach(option => {
+    const answerValue = getAnswerValue(option);
+    let matchCount = 0;
+    sortedDiseases.forEach(([diseaseName]) => {
+      const disease = categoryDiseases[diseaseName];
+      if (disease && disease.attributes[question.attributeIndex] === answerValue) {
+        matchCount++;
+      }
+    });
+    totalGain += matchCount / sortedDiseases.length;
+  });
+  return totalGain / question.options.length;
+};
+
+// Get next question using adaptive logic
+const getNextQuestion = (answeredQuestions, categoryDiseases, allQuestions, currentScores) => {
+  if (!allQuestions || allQuestions.length === 0) return null;
+  const unansweredQuestions = allQuestions.filter(q => !answeredQuestions.has(q.id));
+  if (unansweredQuestions.length === 0) return null;
+
+  if (!categoryDiseases) return unansweredQuestions[0];
+
+  const questionScores = unansweredQuestions.map(question => {
+    const importance = calculateQuestionImportance(categoryDiseases, question.attributeIndex);
+    const infoGain = calculateInformationGain(question, categoryDiseases, currentScores);
+    return { question, score: importance * 0.6 + infoGain * 0.4 };
+  });
+
+  questionScores.sort((a, b) => b.score - a.score);
+  return questionScores[0].question;
+};
+
+// Check if we should stop early
+const shouldStopEarly = (answeredQuestions, categoryDiseases, activeQuestionsList) => {
+  if (answeredQuestions.size < 3) return false;
   if (!categoryDiseases) return false;
 
-  const scores = calculateCurrentScores(answeredQuestions, categoryDiseases);
+  const scores = calculateCurrentScores(answeredQuestions, categoryDiseases, activeQuestionsList);
   const sortedScores = Object.values(scores).sort((a, b) => b - a);
 
-  // If top score is significantly higher than second, and we have reasonable confidence
   if (sortedScores.length >= 2) {
     const topScore = sortedScores[0];
     const secondScore = sortedScores[1];
     const confidenceGap = topScore - secondScore;
-
-    // Stop if we have high confidence (>7) and significant gap (>3)
-    if (topScore > 7 && confidenceGap > 3) {
-      return true;
-    }
+    if (topScore > 15 && confidenceGap > 8) return true;
   }
-
   return false;
 };
 
@@ -297,6 +159,15 @@ function AdaptiveQuestionnaire() {
     "Finalizing assessment report..."
   ];
 
+  const [diseaseScores, setDiseaseScores] = useState({});
+  const [questionHistory, setQuestionHistory] = useState([]);
+  const [questions, setQuestions] = useState([]);
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+  const capturedImage = location.state?.capturedImage;
+  const predictions = location.state?.predictions;
+
   useEffect(() => {
     let interval;
     if (isLoading) {
@@ -307,89 +178,55 @@ function AdaptiveQuestionnaire() {
     return () => clearInterval(interval);
   }, [isLoading]);
 
-  const [diseaseScores, setDiseaseScores] = useState({});
-  const [questionHistory, setQuestionHistory] = useState([]);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const capturedImage = location.state?.capturedImage;
-  const predictions = location.state?.predictions;
-
-  const getTopPrediction = () => {
-    if (!predictions) return '';
-
-    if (Array.isArray(predictions) && predictions.length > 0) {
-      return predictions[0]?.condition || '';
-    } else if (predictions.top_prediction) {
-      return predictions.top_prediction;
-    } else if (typeof predictions === 'string') {
-      return predictions;
-    }
-    return '';
-  };
-
-  // Initialize first question
+  // Initialize
   useEffect(() => {
-    const topPrediction = getTopPrediction();
-    const category = getTargetCategory(topPrediction);
-    const categoryDiseases = category ? CATEGORY_SCORE_MAP[category] : null;
+    const topPred = getTopPrediction(predictions);
+    const category = getTargetCategory(topPred);
+    const activeQs = getActiveQuestions(predictions);
+    setQuestions(activeQs);
 
-    if (!category || !categoryDiseases) {
-      console.warn(`No category found for prediction: ${topPrediction}. Showing all questions.`);
-      // Fallback: show first question if category not found
-      if (QUESTIONS.length > 0) {
-        setCurrentQuestion(QUESTIONS[0]);
-        setQuestionHistory([QUESTIONS[0].id]);
-      }
-      return;
-    }
-
-    const firstQuestion = getNextQuestion(new Map(), categoryDiseases, QUESTIONS);
+    const categoryDiseases = CATEGORY_SCORE_MAP[category];
+    const firstQuestion = getNextQuestion(new Map(), categoryDiseases, activeQs, {});
+    
     if (firstQuestion) {
       setCurrentQuestion(firstQuestion);
       setQuestionHistory([firstQuestion.id]);
-    } else if (QUESTIONS.length > 0) {
-      // Fallback to first question if no adaptive question found
-      setCurrentQuestion(QUESTIONS[0]);
-      setQuestionHistory([QUESTIONS[0].id]);
     }
-  }, []);
+  }, [predictions]);
 
-  // Update disease scores when answers change
+  // Update scores
   useEffect(() => {
-    const topPrediction = getTopPrediction();
-    const category = getTargetCategory(topPrediction);
+    const topPred = getTopPrediction(predictions);
+    const category = getTargetCategory(topPred);
     const categoryDiseases = CATEGORY_SCORE_MAP[category];
 
-    if (categoryDiseases && answers.size > 0) {
-      const scores = calculateCurrentScores(answers, categoryDiseases);
+    if (categoryDiseases && answers.size > 0 && questions.length > 0) {
+      const scores = calculateCurrentScores(answers, categoryDiseases, questions);
       setDiseaseScores(scores);
     }
-  }, [answers]);
+  }, [answers, questions, predictions]);
 
   const handleAnswer = (questionId, answer) => {
     const newAnswers = new Map(answers);
     newAnswers.set(questionId, answer);
     setAnswers(newAnswers);
 
-    // Determine next question
-    const topPrediction = getTopPrediction();
-    const category = getTargetCategory(topPrediction);
+    const topPred = getTopPrediction(predictions);
+    const category = getTargetCategory(topPred);
     const categoryDiseases = CATEGORY_SCORE_MAP[category];
 
-    // Check if we should stop early
-    if (shouldStopEarly(newAnswers, categoryDiseases)) {
+    if (shouldStopEarly(newAnswers, categoryDiseases, questions)) {
       handleCompletion(newAnswers);
       return;
     }
 
-    // Get next question
-    const nextQuestion = getNextQuestion(newAnswers, categoryDiseases, QUESTIONS);
+    const currentScores = calculateCurrentScores(newAnswers, categoryDiseases, questions);
+    const nextQuestion = getNextQuestion(newAnswers, categoryDiseases, questions, currentScores);
 
     if (nextQuestion) {
       setCurrentQuestion(nextQuestion);
       setQuestionHistory(prev => [...prev, nextQuestion.id]);
     } else {
-      // No more questions
       handleCompletion(newAnswers);
     }
   };
@@ -397,15 +234,13 @@ function AdaptiveQuestionnaire() {
   const handlePrevious = () => {
     if (questionHistory.length > 1) {
       const newHistory = [...questionHistory];
-      newHistory.pop(); // Remove current
+      newHistory.pop();
       const previousQuestionId = newHistory[newHistory.length - 1];
-      const previousQuestion = QUESTIONS.find(q => q.id === previousQuestionId);
+      const previousQuestion = questions.find(q => q.id === previousQuestionId);
 
       if (previousQuestion) {
         setCurrentQuestion(previousQuestion);
         setQuestionHistory(newHistory);
-
-        // Remove the answer for the current question
         const newAnswers = new Map(answers);
         newAnswers.delete(currentQuestion.id);
         setAnswers(newAnswers);
@@ -415,20 +250,13 @@ function AdaptiveQuestionnaire() {
 
   const handleCompletion = (finalAnswers = answers) => {
     setIsLoading(true);
-
-    // Convert Map to object for storage
     const answersObj = {};
-    finalAnswers.forEach((value, key) => {
-      answersObj[key] = value;
-    });
+    finalAnswers.forEach((v, k) => { answersObj[k] = v; });
 
-    // Calculate final disease scores
-    const topPrediction = getTopPrediction();
-    const category = getTargetCategory(topPrediction);
+    const topPred = getTopPrediction(predictions);
+    const category = getTargetCategory(topPred);
     const categoryDiseases = CATEGORY_SCORE_MAP[category];
-    const finalScores = categoryDiseases ? calculateCurrentScores(finalAnswers, categoryDiseases) : {};
-
-    const randomDelay = Math.random() * 2 + 1;
+    const finalScores = (categoryDiseases && questions.length > 0) ? calculateCurrentScores(finalAnswers, categoryDiseases, questions) : {};
 
     setTimeout(() => {
       localStorage.setItem('assessmentAnswers', JSON.stringify(answersObj));
@@ -441,7 +269,7 @@ function AdaptiveQuestionnaire() {
           adaptive: true
         }
       });
-    }, randomDelay * 1000);
+    }, 2000);
   };
 
   if (!currentQuestion) {
@@ -456,22 +284,20 @@ function AdaptiveQuestionnaire() {
 
   const currentAnswer = answers.get(currentQuestion.id);
   const isFirstQuestion = questionHistory.length === 1;
-  const isLastQuestion = answers.size >= QUESTIONS.length || !getNextQuestion(answers,
-    CATEGORY_SCORE_MAP[getTargetCategory(getTopPrediction())], QUESTIONS);
+  const isLastQuestion = answers.size >= questions.length || !getNextQuestion(answers,
+    CATEGORY_SCORE_MAP[getTargetCategory(getTopPrediction(predictions))] || {}, questions, diseaseScores);
+
 
   return (
     <div className="assessment-wrapper">
-      {/* Header */}
       <nav className="navbar">
         <div className="nav-container">
           <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>SkinSight AI</div>
-
           <div className="nav-links">
             <a href="/#home" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Home</a>
             <a href="/#about" onClick={(e) => { e.preventDefault(); navigate('/'); setTimeout(() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>About</a>
             <a href="/#how-to-use" onClick={(e) => { e.preventDefault(); navigate('/'); setTimeout(() => document.getElementById('how-to-use')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>How To Use</a>
           </div>
-
           <button className="btn-contact" onClick={() => { navigate('/'); setTimeout(() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>
             Contact Us
           </button>
@@ -493,7 +319,7 @@ function AdaptiveQuestionnaire() {
 
         <div className="assessment-card animate-fade-in">
           <div className="progress-dots">
-            {QUESTIONS.map((_, i) => (
+            {questions.map((_, i) => (
               <div
                 key={i}
                 className={`dot ${i + 1 === questionHistory.length ? 'active' : i + 1 < questionHistory.length ? 'completed' : ''}`}
@@ -539,7 +365,6 @@ function AdaptiveQuestionnaire() {
         </div>
       </div>
 
-      {/* Footer */}
       <footer className="footer">
         <div className="container">
           <div className="footer-content">
@@ -565,4 +390,3 @@ function AdaptiveQuestionnaire() {
 }
 
 export default AdaptiveQuestionnaire;
-
