@@ -3,7 +3,6 @@ const CONDITION_DESCRIPTIONS = {
     name: "Acne",
     description: "Acne is a common medical skin condition affecting up to 90% of adolescents and sometimes adults. It causes pimples, blackheads, and cysts, mainly on the face, chest, and back. Though often seen as cosmetic, it requires treatment to prevent scarring and emotional distress.",
     causes: "Acne develops when pores clog with oil, dead skin cells, and bacteria, causing inflammation. Whiteheads occur when pores are fully blocked, while blackheads form when clogged pores remain open and darken on exposure to air. Excess oil and inflammation can lead to deeper cysts and nodules. Causes include hormonal, genetic, and environmental factors. Androgens, which rise during puberty, menstruation, and pregnancy, increase oil production. Family history, comedogenic products, certain medications, diet, and stress can also trigger acne.",
-
   },
   "Acne Keloidalis Nuchae": {
     name: "Acne Kleoidalis Nuchae",

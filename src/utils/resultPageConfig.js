@@ -14,12 +14,6 @@ export const DISPLAY_THRESHOLDS = {
   'DEFAULT': 25
 };
 
-export const URGENCY_CONFIG = {
-  HIGH_THRESHOLD: 0.7,
-  MODERATE_THRESHOLD: 0.5,
-  HIGH_RISK_CONDITIONS: ['MEL', 'SCC']
-};
-
 export const CATEGORY_NAMES = [
   'INFLAMMATORY',
   'INFECTIOUS',

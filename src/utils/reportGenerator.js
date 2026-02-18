@@ -6,10 +6,9 @@
 /**
  * Generate HTML report content
  * @param {string} capturedImage - Base64 image data
- * @param {string} urgencyLevel - 'high', 'moderate', or 'low'
  * @returns {string} - HTML report content
  */
-export function generateReportHTML(capturedImage, urgencyLevel) {
+export function generateReportHTML(capturedImage) {
   return `
     <html>
       <head>
@@ -39,24 +38,6 @@ export function generateReportHTML(capturedImage, urgencyLevel) {
             padding: 1rem;
             border-left: 4px solid #007bff;
           }
-          .urgency { 
-            font-weight: bold; 
-            padding: 1rem;
-            border-radius: 4px;
-            margin: 1rem 0;
-          }
-          .urgency.high { 
-            color: white;
-            background-color: #dc3545;
-          }
-          .urgency.moderate { 
-            color: white;
-            background-color: #ffc107;
-          }
-          .urgency.low { 
-            color: white;
-            background-color: #28a745;
-          }
           .note { 
             font-style: italic; 
             color: #666; 
@@ -84,10 +65,6 @@ export function generateReportHTML(capturedImage, urgencyLevel) {
         </div>
         
         <div class="section">
-          <h2>Urgency Assessment</h2>
-          <div class="urgency ${urgencyLevel}">
-            Urgency Level: ${urgencyLevel.toUpperCase()}
-          </div>
           <div class="note">
             Note: This analysis is for informational purposes only. 
             Please consult a medical professional for accurate diagnosis and treatment.
@@ -124,9 +101,8 @@ export function downloadReportFile(htmlContent, generatedDate = new Date()) {
 /**
  * Generate and download report in one step
  * @param {string} capturedImage - Base64 image data
- * @param {string} urgencyLevel - Urgency level string
  */
-export function generateAndDownloadReport(capturedImage, urgencyLevel) {
-  const htmlContent = generateReportHTML(capturedImage, urgencyLevel);
+export function generateAndDownloadReport(capturedImage) {
+  const htmlContent = generateReportHTML(capturedImage);
   downloadReportFile(htmlContent);
 }

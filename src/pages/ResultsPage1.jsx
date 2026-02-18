@@ -18,7 +18,6 @@ import {
   findConditionDescription,
   formatDiseaseName
 } from '../utils/predictionProcessing';
-import { calculateUrgencyLevel } from '../utils/urgencyCalculator';
 import { getAllCategoriesResults } from '../utils/diseaseScoring';
 import { generateAndDownloadReport } from '../utils/reportGenerator';
 import { formatAssessmentAnswers } from '../utils/assessmentFormatter';
@@ -139,10 +138,8 @@ function ResultsPage() {
   // Get assessment answers for display (use same questions as SelfAssessment when available)
   const assessmentAnswers = formatAssessmentAnswers(assessmentData, assessmentQuestions);
 
-  const urgencyLevel = calculateUrgencyLevel(topPrediction);
-
   const handleDownloadReport = () => {
-    generateAndDownloadReport(capturedImage, urgencyLevel);
+    generateAndDownloadReport(capturedImage);
   };
 
   return (
