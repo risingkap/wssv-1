@@ -18,9 +18,6 @@ import {
   findConditionDescription,
   formatDiseaseName
 } from '../utils/predictionProcessing';
-import { calculateUrgencyLevel } from '../utils/urgencyCalculator';
-import { generateAndDownloadReport } from '../utils/reportGenerator';
-import { formatAssessmentAnswers } from '../utils/assessmentFormatter';
 
 import {
   calculateWeightedResults
@@ -32,22 +29,17 @@ import {
   getTopPrediction
 } from './selfAssessmentQuestions';
 
-
-import {
-  CONDITION_DESCRIPTIONS
-} from './MedicalConditions';
-
-import { CONFIG } from '../config';
+import { formatAssessmentAnswers } from '../utils/assessmentFormatter';
 
 const DISPLAY_THRESHOLDS = {
-  'INFLAMMATORY': 25,
-  'INFECTIOUS': 20,
-  'AUTOIMMUNE': 30,
-  'BENIGN_GROWTH': 15,
-  'PIGMENTARY': 25,
-  'SKIN_CANCER': 10,
-  'ENVIRONMENTAL': 20,
-  'DEFAULT': 25
+  'INFLAMMATORY': 0,
+  'INFECTIOUS': 0,
+  'AUTOIMMUNE': 0,
+  'BENIGN_GROWTH': 0,
+  'PIGMENTARY': 0,
+  'SKIN_CANCER': 0,
+  'ENVIRONMENTAL': 0,
+  'DEFAULT': 0
 };
 
 function ResultsPage() {
@@ -56,9 +48,18 @@ function ResultsPage() {
   const predictions = location.state?.predictions;
   const capturedImage = location.state?.capturedImage;
   const assessmentData = location.state?.answers;
-  const assessmentQuestions = location.state?.assessmentQuestions;
+  const assessmentQuestions = location.state?.assessmentQuestions; // This is key!
   const diseaseScores = location.state?.diseaseScores;
   const isAdaptive = location.state?.adaptive || false;
+
+  const assessmentAnswers = formatAssessmentAnswers(assessmentData, assessmentQuestions);
+
+  console.log('ResultsPage received:', {
+    predictions,
+    diseaseScores,
+    assessmentData,
+    isAdaptive
+  });
 
   if (!predictions || !capturedImage) {
     return (
@@ -260,84 +261,65 @@ function ResultsPage() {
       const targetCategory = getTargetCategory(topPredString);
       const categoryData = diseaseScores;
 
-      const categoryThreshold = DISPLAY_THRESHOLDS[targetCategory] || DISPLAY_THRESHOLDS.DEFAULT;
-      
-      if (Object.keys(categoryData).length > 0) {
-        const top4 = Object.entries(categoryData)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 4);
-
-        const totalScore = top4.reduce((sum, [, score]) => sum + score, 0);
+      if (categoryData && Object.keys(categoryData).length > 0) {
+        const allDiseases = Object.entries(categoryData)
+          .map(([disease, score]) => ({
+            disease,
+            score,
+            category: targetCategory
+          }));
         
-        const normalizedResults = top4
-          .map(([disease, score]) => {
-            const percentage = totalScore > 0 ? (score / totalScore) * 100 : 0;
-            return {
-              disease,
-              percentage: Number(percentage.toFixed(1)),
-              category: targetCategory,
-              threshold: categoryThreshold
-            };
-          })
-          .filter(result => result.percentage >= categoryThreshold);
-
-        results.push(...normalizedResults);
+        results.push(...allDiseases);
       }
     } else if (assessmentData) {
       const categories = ['INFLAMMATORY', 'INFECTIOUS', 'AUTOIMMUNE', 'BENIGN_GROWTH', 'PIGMENTARY', 'SKIN_CANCER', 'ENVIRONMENTAL'];
       
       categories.forEach(category => {
         const weightedCategories = calculateWeightedResults(assessmentData, topPrediction?.condition);
-        const categoryData = weightedCategories[category];
-        const categoryThreshold = DISPLAY_THRESHOLDS[category] || DISPLAY_THRESHOLDS.DEFAULT;
+        const categoryData = weightedCategories?.[category];
         
         if (categoryData && Object.keys(categoryData).length > 0) {
-          const top4 = Object.entries(categoryData)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 4);
-
-          const totalScore = top4.reduce((sum, [, score]) => sum + score, 0);
+          const categoryDiseases = Object.entries(categoryData)
+            .map(([disease, score]) => ({
+              disease,
+              score,
+              category: category
+            }));
           
-          const normalizedResults = top4
-            .map(([disease, score]) => {
-              const percentage = totalScore > 0 ? (score / totalScore) * 100 : 0;
-              return {
-                disease,
-                percentage: Number(percentage.toFixed(1)),
-                category: category,
-                threshold: categoryThreshold
-              };
-            })
-            .filter(result => result.percentage >= categoryThreshold);
-
-          results.push(...normalizedResults);
+          results.push(...categoryDiseases);
         }
       });
     }
 
-    return results.sort((a, b) => b.percentage - a.percentage);
+    // First, sort all results by score
+    const sortedResults = results.sort((a, b) => b.score - a.score);
+    
+    // Take top 4 results
+    const TOP_RESULTS_COUNT = 4;
+    const topResults = sortedResults.slice(0, TOP_RESULTS_COUNT);
+    
+    // Calculate total score based ONLY on top results
+    const topResultsTotal = topResults.reduce((sum, item) => sum + item.score, 0);
+    
+    // Calculate percentages based on top results total
+    const finalResults = topResults.map(item => {
+      const percentage = topResultsTotal > 0 ? (item.score / topResultsTotal) * 100 : 0;
+      
+      return {
+        disease: item.disease,
+        percentage: Number(percentage.toFixed(0)), // Round to whole number
+        score: item.score,
+        category: item.category
+      };
+    });
+
+    console.log('Top results with recalculated percentages:', finalResults);
+    console.log('Sum of percentages:', finalResults.reduce((sum, r) => sum + r.percentage, 0));
+
+    return finalResults;
   };
 
   const allDiseaseResults = getAllCategoriesResults();
-
-  // Get assessment answers for display
-  const assessmentAnswers = assessmentData ? Object.entries(assessmentData).map(([key, value]) => {
-    const questionId = parseInt(key);
-    
-    // Find question text across all categories
-    let questionText = `Question ${key}`;
-    Object.values(CATEGORY_QUESTIONS).forEach(categoryGroup => {
-      const found = categoryGroup.find(q => q.id === questionId);
-      if (found) questionText = found.text;
-    });
-
-    return {
-      question: questionText,
-      answer: value,
-      questionId: questionId
-    };
-  }) : [];
-
 
   return (
     <div className="results-container">
@@ -363,8 +345,8 @@ function ResultsPage() {
         <div className="detected-conditions-section">
           <h2 className="section-title">Detected Conditions</h2>
           <div className="conditions-grid">
-            {displayResults.length > 0 ? (
-              displayResults.map((result, index) => {
+            {allDiseaseResults.length > 0 ? (
+              allDiseaseResults.map((result, index) => {
                 // Get condition information
                 const conditionInfo = findConditionDescription(result.disease);
                 
@@ -374,6 +356,10 @@ function ResultsPage() {
                                     word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                                   ).join(' ') ||
                                   result.disease.replace(/_/g, ' ');
+                
+
+
+
                 return (
                   <div key={index} className="condition-card">
                     <div className="condition-info">

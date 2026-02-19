@@ -148,6 +148,8 @@ export const getTargetCategory = (topPredictionCondition) => {
     ENVIRONMENTAL: ['environmental', 'poison', 'razor', 'dry skin', 'sun damage', 'burn']
   };
 
+  
+
   for (const [category, keywords] of Object.entries(categories)) {
     if (keywords.some(keyword => condition.includes(keyword))) {
       return category;
@@ -155,6 +157,7 @@ export const getTargetCategory = (topPredictionCondition) => {
   }
   
   return 'DEFAULT';
+  
 };
 
 
