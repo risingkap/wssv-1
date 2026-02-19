@@ -289,7 +289,7 @@ body {
 .answer-text {
   margin: 0;
   color: var(--text-gray);
-  font-size: 0.9rem;
+  font-size: 1.05rem;
 }
 
 /* Right Column - Recommendations */
@@ -313,7 +313,7 @@ body {
   gap: 12px;
   align-items: flex-start;
   color: var(--text-gray);
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   line-height: 1.5;
 }
 
@@ -416,7 +416,7 @@ body {
 .footer-left p {
   color: var(--text-gray);
   max-width: 300px;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
 }
 
 .footer-right {
@@ -432,7 +432,7 @@ body {
 }
 
 .footer-copyright {
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   color: #9ca3af;
   margin-top: 10px;
 }

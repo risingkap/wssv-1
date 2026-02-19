@@ -63,9 +63,18 @@
   letter-spacing: -1px;
 }
 
+.assessment-subtext {
+  display: block;
+  font-size: 1.15rem;
+  color: var(--text-gray);
+  margin-bottom: 30px;
+  text-align: center;
+  line-height: 1.6;
+}
+
 .assessment-note {
   color: var(--text-gray);
-  font-size: 1rem;
+  font-size: 1.1rem;
   line-height: 1.5;
 }
 
@@ -229,7 +238,7 @@
 }
 
 .footer-left p {
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   max-width: 300px;
 }
 

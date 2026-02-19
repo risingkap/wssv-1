@@ -18,10 +18,37 @@ import {
   findConditionDescription,
   formatDiseaseName
 } from '../utils/predictionProcessing';
-import { getAllCategoriesResults } from '../utils/diseaseScoring';
+import { calculateUrgencyLevel } from '../utils/urgencyCalculator';
 import { generateAndDownloadReport } from '../utils/reportGenerator';
 import { formatAssessmentAnswers } from '../utils/assessmentFormatter';
-import { DISEASES } from '../data/diseases';
+
+import {
+  calculateWeightedResults
+} from './SelfAssessment';
+
+import {
+  CATEGORY_QUESTIONS,
+  getTargetCategory,
+  getTopPrediction
+} from './selfAssessmentQuestions';
+
+
+import {
+  CONDITION_DESCRIPTIONS
+} from './MedicalConditions';
+
+import { CONFIG } from '../config';
+
+const DISPLAY_THRESHOLDS = {
+  'INFLAMMATORY': 25,
+  'INFECTIOUS': 20,
+  'AUTOIMMUNE': 30,
+  'BENIGN_GROWTH': 15,
+  'PIGMENTARY': 25,
+  'SKIN_CANCER': 10,
+  'ENVIRONMENTAL': 20,
+  'DEFAULT': 25
+};
 
 function ResultsPage() {
   const navigate = useNavigate();
@@ -52,95 +79,265 @@ function ResultsPage() {
 
   const topPrediction = getTopPredictionWithDetails(predictions);
 
-  const allDiseaseResults = getAllCategoriesResults({
-    isAdaptive,
-    diseaseScores,
-    assessmentData,
-    topCondition: topPrediction?.condition
-  }).filter(result => result.percentage > 0);
+  const urgencyLevel =
+    topPrediction?.probability > 0.7 && (topPrediction?.condition === 'MEL' || topPrediction?.condition === 'SCC')
+      ? 'high'
+      : topPrediction?.probability > 0.5
+        ? 'moderate'
+        : 'low';
 
-  // Determine how many results to show (3 or 4) and renormalize so they sum to 100
-  let displayResults = allDiseaseResults.slice(0, 4);
-  if (displayResults.length > 0) {
-    const topPct = displayResults[0].percentage || 0;
-    const targetCount = topPct > 40 ? Math.min(3, displayResults.length) : Math.min(4, displayResults.length);
-    displayResults = displayResults.slice(0, targetCount);
+  const handleDownloadReport = () => {
+    const reportContent = `
+      <html>
+        <head>
+          <title>SkinSight AI Analysis Report</title>
+          <style>
+            body { 
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+              padding: 40px; 
+              color: #333;
+              line-height: 1.6;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 2px solid #1e3a8a;
+              margin-bottom: 30px;
+              padding-bottom: 20px;
+            }
+            .header h1 { color: #1e3a8a; margin: 0; }
+            .meta-info {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 30px;
+              font-size: 0.9rem;
+              color: #666;
+            }
+            .section { margin-bottom: 40px; }
+            .section-title {
+              font-size: 1.2rem;
+              font-weight: bold;
+              color: #1e3a8a;
+              border-bottom: 1px solid #e5e7eb;
+              margin-bottom: 15px;
+              padding-bottom: 5px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+            th, td {
+              text-align: left;
+              padding: 12px;
+              border: 1px solid #e5e7eb;
+            }
+            th {
+              background-color: #f8fafc;
+              color: #1e3a8a;
+              font-weight: 600;
+            }
+            .image-container {
+              text-align: center;
+              margin-bottom: 30px;
+            }
+            .image-container img {
+              max-width: 400px;
+              border-radius: 8px;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            .recommendation-item {
+              margin-bottom: 8px;
+              padding-left: 20px;
+              position: relative;
+            }
+            .recommendation-item::before {
+              content: "•";
+              position: absolute;
+              left: 0;
+              color: #1e3a8a;
+              font-weight: bold;
+            }
+            .footer {
+              margin-top: 50px;
+              font-size: 0.8rem;
+              color: #999;
+              text-align: center;
+              border-top: 1px solid #eee;
+              padding-top: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>SkinSight AI Analysis Report</h1>
+          </div>
 
-    const rawTotal = displayResults.reduce((sum, r) => sum + r.percentage, 0);
-    if (rawTotal > 0) {
-      const recalculated = displayResults.map((item, index) => {
-        if (index === displayResults.length - 1) {
-          const sumFirst = displayResults
-            .slice(0, -1)
-            .reduce(
-              (sum, r) => sum + Math.round((r.percentage / rawTotal) * 100),
-              0
-            );
-          return {
-            ...item,
-            percentage: 100 - sumFirst
-          };
-        }
-        return {
-          ...item,
-          percentage: Math.round((item.percentage / rawTotal) * 100)
-        };
-      });
-      displayResults = recalculated;
+          <div class="meta-info">
+            <span>Report ID: SS-${Math.floor(Math.random() * 1000000)}</span>
+            <span>Generated: ${new Date().toLocaleString()}</span>
+          </div>
 
-      // Break any remaining percentage ties using attribute-based bias
-      const percentageGroups = displayResults.reduce((acc, item, index) => {
-        const key = item.percentage;
-        if (!acc[key]) acc[key] = [];
-        acc[key].push(index);
-        return acc;
-      }, {});
+          <div class="section">
+            <div class="section-title">Analysis Image</div>
+            <div class="image-container">
+              <img src="${capturedImage}" alt="Skin Analysis Image"/>
+            </div>
+          </div>
 
-      Object.values(percentageGroups).forEach(indices => {
-        if (indices.length <= 1) return;
+          <div class="section">
+            <div class="section-title">Top Detected Conditions</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Condition</th>
+                  <th>Confidence Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allDiseaseResults.slice(0, 4).map(res => `
+                  <tr>
+                    <td>${res.disease.replace(/_/g, ' ')}</td>
+                    <td>${res.percentage}%</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
 
-        const enriched = indices
-          .map(idx => {
-            const item = displayResults[idx];
-            const attrs =
-              (item.category &&
-                DISEASES[item.category] &&
-                DISEASES[item.category][item.disease] &&
-                DISEASES[item.category][item.disease].attributes) ||
-              [];
-            const zeroCount = attrs.filter(v => v === 0).length;
-            return { idx, zeroCount };
+          <div class="section">
+            <div class="section-title">Self-Assessment Data</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Question</th>
+                  <th>User Answer</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${assessmentAnswers.map(item => `
+                  <tr>
+                    <td>${item.question}</td>
+                    <td>${item.answer}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Clinical Recommendations</div>
+            <div class="recommendations">
+              ${topPrediction?.recommendations?.map(rec => `
+                <div class="recommendation-item">${typeof rec === "string" ? rec : rec.text}</div>
+              `).join('') || 'No recommendations available'}
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>This report is generated by AI for informational purposes only and does not substitute professional medical advice.</p>
+            <p>© 2025 SkinSight AI. All rights reserved.</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const blob = new Blob([reportContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `skin-analysis-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const getAllCategoriesResults = () => {
+    const results = [];
+    
+    if (isAdaptive && diseaseScores && Object.keys(diseaseScores).length > 0) {
+      const topPredString = getTopPrediction(predictions);
+      const targetCategory = getTargetCategory(topPredString);
+      const categoryData = diseaseScores;
+
+      const categoryThreshold = DISPLAY_THRESHOLDS[targetCategory] || DISPLAY_THRESHOLDS.DEFAULT;
+      
+      if (Object.keys(categoryData).length > 0) {
+        const top4 = Object.entries(categoryData)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 4);
+
+        const totalScore = top4.reduce((sum, [, score]) => sum + score, 0);
+        
+        const normalizedResults = top4
+          .map(([disease, score]) => {
+            const percentage = totalScore > 0 ? (score / totalScore) * 100 : 0;
+            return {
+              disease,
+              percentage: Number(percentage.toFixed(1)),
+              category: targetCategory,
+              threshold: categoryThreshold
+            };
           })
-          .sort((a, b) => a.zeroCount - b.zeroCount || a.idx - b.idx);
+          .filter(result => result.percentage >= categoryThreshold);
 
-        for (let i = 1; i < enriched.length; i++) {
-          const downIdx = enriched[i].idx;
-          const upIdx = enriched[0].idx;
+        results.push(...normalizedResults);
+      }
+    } else if (assessmentData) {
+      const categories = ['INFLAMMATORY', 'INFECTIOUS', 'AUTOIMMUNE', 'BENIGN_GROWTH', 'PIGMENTARY', 'SKIN_CANCER', 'ENVIRONMENTAL'];
+      
+      categories.forEach(category => {
+        const weightedCategories = calculateWeightedResults(assessmentData, topPrediction?.condition);
+        const categoryData = weightedCategories[category];
+        const categoryThreshold = DISPLAY_THRESHOLDS[category] || DISPLAY_THRESHOLDS.DEFAULT;
+        
+        if (categoryData && Object.keys(categoryData).length > 0) {
+          const top4 = Object.entries(categoryData)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 4);
 
-          const downItem = displayResults[downIdx];
-          const upItem = displayResults[upIdx];
+          const totalScore = top4.reduce((sum, [, score]) => sum + score, 0);
+          
+          const normalizedResults = top4
+            .map(([disease, score]) => {
+              const percentage = totalScore > 0 ? (score / totalScore) * 100 : 0;
+              return {
+                disease,
+                percentage: Number(percentage.toFixed(1)),
+                category: category,
+                threshold: categoryThreshold
+              };
+            })
+            .filter(result => result.percentage >= categoryThreshold);
 
-          const delta = 1;
-
-          displayResults[downIdx] = {
-            ...downItem,
-            percentage: Math.max(0, downItem.percentage - delta)
-          };
-          displayResults[upIdx] = {
-            ...upItem,
-            percentage: upItem.percentage + delta
-          };
+          results.push(...normalizedResults);
         }
       });
     }
-  }
 
-  // Get assessment answers for display (use same questions as SelfAssessment when available)
-  const assessmentAnswers = formatAssessmentAnswers(assessmentData, assessmentQuestions);
-
-  const handleDownloadReport = () => {
-    generateAndDownloadReport(capturedImage);
+    return results.sort((a, b) => b.percentage - a.percentage);
   };
+
+  const allDiseaseResults = getAllCategoriesResults();
+
+  // Get assessment answers for display
+  const assessmentAnswers = assessmentData ? Object.entries(assessmentData).map(([key, value]) => {
+    const questionId = parseInt(key);
+    
+    // Find question text across all categories
+    let questionText = `Question ${key}`;
+    Object.values(CATEGORY_QUESTIONS).forEach(categoryGroup => {
+      const found = categoryGroup.find(q => q.id === questionId);
+      if (found) questionText = found.text;
+    });
+
+    return {
+      question: questionText,
+      answer: value,
+      questionId: questionId
+    };
+  }) : [];
+
 
   return (
     <div className="results-container">
